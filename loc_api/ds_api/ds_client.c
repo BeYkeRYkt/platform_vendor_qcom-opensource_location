@@ -579,7 +579,7 @@ ds_client_open_call(dsClientHandleType *client_handle,
         LOC_LOGD("%s:%d]: Got profile setting for profile %d\n", __func__, __LINE__, i);
         LOC_LOGD("%s:%d]: Profile name: %s\n", __func__, __LINE__,
                  profile_settings_resp_msg.p_get_profile_setting_resp->profile_name);
-
+        /* qmi version does not support supl emergency services
         if(profile_settings_resp_msg.p_get_profile_setting_resp->support_emergency_calls_valid) {
             if(profile_settings_resp_msg.p_get_profile_setting_resp->support_emergency_calls) {
                 LOC_LOGD("%s:%d]: Found emergency profile in profile %d"
@@ -591,7 +591,7 @@ ds_client_open_call(dsClientHandleType *client_handle,
             else
                 LOC_LOGE("%s:%d]: Emergency profile valid but not supported in profile: %d "
                          , __func__, __LINE__, i);
-        }
+        }*/
         //Since this struct is loaded with settings for the next profile,
         //it is important to clear out the memory to avoid values/flags
         //from being carried over
