@@ -97,6 +97,10 @@ private:
   void reportNiRequest(
     const qmiLocEventNiNotifyVerifyReqIndMsgT_v02 *ni_req_ptr);
 
+  /* report the xtra server info */
+  void reportXtraServerUrl(
+    const qmiLocEventInjectPredictedOrbitsReqIndMsgT_v02* server_request_ptr);
+
 protected:
   virtual enum loc_api_adapter_err
     open(LOC_API_ADAPTER_EVENT_MASK_T mask);
@@ -176,6 +180,20 @@ public:
   virtual int openAndStartDataCall();
   virtual void stopDataCall();
   virtual void closeDataCall();
+  /*Values for lock
+    1 = Do not lock any position sessions
+    2 = Lock MI position sessions
+    3 = Lock MT position sessions
+    4 = Lock all position sessions
+  */
+  virtual int setGpsLock(unsigned int lock);
+
+  /*
+    Returns
+    Current value of GPS Lock on success
+    -1 on failure
+  */
+  virtual int getGpsLock(void);
 };
 
 #endif //LOC_API_V_0_2_H
