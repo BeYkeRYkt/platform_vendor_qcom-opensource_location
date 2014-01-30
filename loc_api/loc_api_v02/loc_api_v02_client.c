@@ -182,6 +182,11 @@ static locClientEventIndTableStructT locClientEventIndTable[]= {
     sizeof(qmiLocEventGeofenceBreachIndMsgT_v02),
     QMI_LOC_EVENT_MASK_GEOFENCE_BREACH_NOTIFICATION_V02},
 
+  //Geofence Batched Breach event
+  { QMI_LOC_EVENT_GEOFENCE_BATCHED_BREACH_NOTIFICATION_IND_V02,
+    sizeof(qmiLocEventGeofenceBatchedBreachIndMsgT_v02),
+    QMI_LOC_EVENT_MASK_GEOFENCE_BATCH_BREACH_NOTIFICATION_V02},
+
   //Pedometer Control event
   { QMI_LOC_EVENT_PEDOMETER_CONTROL_IND_V02,
     sizeof(qmiLocEventPedometerControlIndMsgT_v02),
@@ -944,6 +949,13 @@ static bool locClientHandleIndication(
     case QMI_LOC_EVENT_GEOFENCE_BREACH_NOTIFICATION_IND_V02:
     {
       //locClientHandleGeofenceBreachInd(user_handle, msg_id, ind_buf, ind_buf_len);
+      status = true;
+      break;
+    }
+
+    case QMI_LOC_EVENT_GEOFENCE_BATCHED_BREACH_NOTIFICATION_IND_V02:
+    {
+      //locClientHandleGeofenceBatchedBreachInd(user_handle, msg_id, ind_buf, ind_buf_len);
       status = true;
       break;
     }
