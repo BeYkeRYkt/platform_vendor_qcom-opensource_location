@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2014, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -190,7 +190,7 @@ LocApiV02 :: open(LOC_API_ADAPTER_EVENT_MASK_T mask)
 
     // it is important to cap the mask here, because not all LocApi's
     // can enable the same bits, e.g. foreground and bckground.
-    status = locClientOpen(convertMask(newMask), &globalCallbacks,
+    status = locClientOpen(convertMask(mask), &globalCallbacks,
                            &clientHandle, (void *)this);
     mMask = newMask;
     if (eLOC_CLIENT_SUCCESS != status ||
@@ -350,10 +350,6 @@ enum loc_api_adapter_err LocApiV02 :: startFix(const LocPosMode& fixCriteria)
 
       start_msg.applicationId_valid = 1;
   }
-
-  // config Altitude Assumed
-  start_msg.configAltitudeAssumed_valid = 1;
-  start_msg.configAltitudeAssumed = eQMI_LOC_ALTITUDE_ASSUMED_IN_GNSS_SV_INFO_DISABLED_V02;
 
   req_union.pStartReq = &start_msg;
 
@@ -1689,12 +1685,6 @@ locClientEventMaskType LocApiV02 :: convertMask(
   if (mask & LOC_API_ADAPTER_REQUEST_WIFI_AP_DATA)
       eventMask |= QMI_LOC_EVENT_MASK_INJECT_WIFI_AP_DATA_REQ_V02;
 
-  if(mask & LOC_API_ADAPTER_BIT_BATCH_FULL)
-      eventMask |= QMI_LOC_EVENT_MASK_BATCH_FULL_NOTIFICATION_V02;
-
-  if(mask & LOC_API_ADAPTER_BIT_BATCHED_POSITION_REPORT)
-      eventMask |= QMI_LOC_EVENT_MASK_LIVE_BATCHED_POSITION_REPORT_V02;
-
   return eventMask;
 }
 
@@ -2522,13 +2512,6 @@ void LocApiV02 :: closeDataCall()
 enum loc_api_adapter_err LocApiV02 ::
   getZppFix(GpsLocation & zppLoc)
 {
-  LocPosTechMask tech_mask;
-  return getZppFix(zppLoc, tech_mask);
-}
-
-enum loc_api_adapter_err LocApiV02 ::
-  getZppFix(GpsLocation &zppLoc, LocPosTechMask &tech_mask)
-{
   locClientReqUnionType req_union;
   qmiLocGetBestAvailablePositionIndMsgT_v02 zpp_ind;
   qmiLocGetBestAvailablePositionReqMsgT_v02 zpp_req;
@@ -2601,10 +2584,6 @@ enum loc_api_adapter_err LocApiV02 ::
   if (zpp_ind.heading_valid) {
     zppLoc.flags |= GPS_LOCATION_HAS_BEARING;
     zppLoc.bearing = zpp_ind.heading;
-  }
-
-  if (zpp_ind.technologyMask_valid) {
-      tech_mask = zpp_ind.technologyMask;
   }
 
   return LOC_API_ADAPTER_ERR_SUCCESS;

@@ -9,7 +9,7 @@ QMI_BOARD_PLATFORM_LIST += msm8226
 QMI_BOARD_PLATFORM_LIST += msm8610
 QMI_BOARD_PLATFORM_LIST += apq8084
 
-ifneq (,$(filter $(QMI_BOARD_PLATFORM_LIST),$(TARGET_BOARD_PLATFORM)))
+ifeq ($(call is-board-platform-in-list,$(QMI_BOARD_PLATFORM_LIST)),true)
 include $(call all-subdir-makefiles)
 endif #is-board-platform-in-list
 
