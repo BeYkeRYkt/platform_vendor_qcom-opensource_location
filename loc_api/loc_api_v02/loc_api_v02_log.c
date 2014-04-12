@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2012,2014, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -195,6 +195,7 @@ static loc_name_val_s_type loc_v02_event_name[] =
     NAME_VAL(QMI_LOC_EVENT_NI_GEOFENCE_NOTIFICATION_IND_V02),
     NAME_VAL(QMI_LOC_EVENT_GEOFENCE_GEN_ALERT_IND_V02),
     NAME_VAL(QMI_LOC_EVENT_GEOFENCE_BREACH_NOTIFICATION_IND_V02),
+    NAME_VAL(QMI_LOC_EVENT_GEOFENCE_BATCHED_BREACH_NOTIFICATION_IND_V02),
     NAME_VAL(QMI_LOC_ADD_CIRCULAR_GEOFENCE_REQ_V02),
     NAME_VAL(QMI_LOC_ADD_CIRCULAR_GEOFENCE_RESP_V02),
     NAME_VAL(QMI_LOC_ADD_CIRCULAR_GEOFENCE_IND_V02),
@@ -262,6 +263,9 @@ static loc_name_val_s_type loc_v02_event_name[] =
     NAME_VAL(QMI_LOC_RELEASE_BATCH_REQ_V02),
     NAME_VAL(QMI_LOC_RELEASE_BATCH_RESP_V02),
     NAME_VAL(QMI_LOC_RELEASE_BATCH_IND_V02),
+    NAME_VAL(QMI_LOC_INJECT_VEHICLE_SENSOR_DATA_REQ_V02),
+    NAME_VAL(QMI_LOC_INJECT_VEHICLE_SENSOR_DATA_RESP_V02),
+    NAME_VAL(QMI_LOC_INJECT_VEHICLE_SENSOR_DATA_IND_V02),
 };
 static int loc_v02_event_num = sizeof(loc_v02_event_name) / sizeof(loc_name_val_s_type);
 
