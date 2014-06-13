@@ -169,6 +169,13 @@ LocApiV02 :: ~LocApiV02()
     close();
 }
 
+LocApiBase* getLocApi(const MsgTask *msgTask,
+                      LOC_API_ADAPTER_EVENT_MASK_T exMask)
+{
+    LOC_LOGD("%s:%d]: Creating new LocApiV02", __func__, __LINE__);
+    return new LocApiV02(msgTask, exMask);
+}
+
 /* Initialize a loc api v02 client */
 enum loc_api_adapter_err
 LocApiV02 :: open(LOC_API_ADAPTER_EVENT_MASK_T mask)
