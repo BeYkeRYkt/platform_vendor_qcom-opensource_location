@@ -206,4 +206,6 @@ private:
   locClientEventMaskType adjustMaskForNoSession(locClientEventMaskType qmiMask);
 };
 
+extern "C" LocApiBase* getLocApi(const MsgTask* msgTask,
+                                 LOC_API_ADAPTER_EVENT_MASK_T exMask);
 #endif //LOC_API_V_0_2_H
