@@ -632,6 +632,9 @@ typedef union
 
          To send this request, set the reqId field in locClientSendReq() to
          QMI_LOC_INJECT_VEHICLE_SENSOR_DATA_REQ_V02 */
+
+    const qmiLocSetGNSSConstRepConfigReqMsgT_v02 *pSetGNSSConstRepConfigReq;
+    /*QMI_LOC_SET_GNSS_CONSTELL_REPORT_CONFIG_V02*/
 }locClientReqUnionType;
 
 
@@ -822,6 +825,18 @@ typedef union
         sent to the location engine.
         The eventIndId field in the event indication callback is set to
         QMI_LOC_EVENT_VEHICLE_DATA_READY_STATUS_IND_V02. @newpagetable */
+
+   const qmiLocEventGnssSvMeasInfoIndMsgT_v02* pGnssSvRawInfoEvent;
+
+   /**< Sent by the engine when GNSS measurements are available
+        The eventIndId field in the event indication callback is set to
+        QMI_LOC_EVENT_GNSS_MEASUREMENT_REPORT_IND_V02. @newpagetable */
+
+   const qmiLocEventGnssSvPolyIndMsgT_v02* pGnssSvPolyInfoEvent;
+
+   /**< Sent by the engine when GNSS measurements are available
+        The eventIndId field in the event indication callback is set to
+        QMI_LOC_EVENT_SV_POLYNOMIAL_REPORT_IND_V02. @newpagetable */
 
 }locClientEventIndUnionType;
 
@@ -1215,6 +1230,8 @@ typedef union
     /**< Response to the QMI_LOC_INJECT_VEHICLE_SENSOR_DATA_REQ_V02 request.
         The respIndId field in the response indication callback is set to
         QMI_LOC_INJECT_VEHICLE_SENSOR_DATA_IND_V02. */
+    const qmiLocSetGNSSConstRepConfigIndMsgT_v02 *pSetGNSSConstRepConfigInd;
+    /*QMI_LOC_SET_GNSS_CONSTELL_REPORT_CONFIG_IND_V02*/
 
 }locClientRespIndUnionType;
 
