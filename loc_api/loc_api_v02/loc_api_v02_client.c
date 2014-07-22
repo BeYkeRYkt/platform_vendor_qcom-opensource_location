@@ -215,7 +215,18 @@ static locClientEventIndTableStructT locClientEventIndTable[]= {
    //Vehicle Data Readiness event
    { QMI_LOC_EVENT_VEHICLE_DATA_READY_STATUS_IND_V02,
      sizeof(qmiLocEventVehicleDataReadyIndMsgT_v02),
-     QMI_LOC_EVENT_MASK_VEHICLE_DATA_READY_STATUS_V02 }
+     QMI_LOC_EVENT_MASK_VEHICLE_DATA_READY_STATUS_V02 },
+
+    //GNSS Measurement Indication
+   { QMI_LOC_EVENT_GNSS_MEASUREMENT_REPORT_IND_V02,
+     sizeof(qmiLocEventGnssSvMeasInfoIndMsgT_v02),
+     QMI_LOC_EVENT_MASK_GNSS_MEASUREMENT_REPORT_V02 },
+
+    //GNSS Measurement Indication
+   { QMI_LOC_EVENT_SV_POLYNOMIAL_REPORT_IND_V02,
+    sizeof(qmiLocEventGnssSvPolyIndMsgT_v02),
+    QMI_LOC_EVENT_MASK_GNSS_SV_POLYNOMIAL_REPORT_V02 }
+
 };
 
 /* table to relate the respInd Id with its size */
@@ -496,7 +507,10 @@ static locClientRespIndTableStructT locClientRespIndTable[]= {
      sizeof(qmiLocNotifyWifiAttachmentStatusIndMsgT_v02)},
 
    { QMI_LOC_NOTIFY_WIFI_ENABLED_STATUS_IND_V02,
-     sizeof(qmiLocNotifyWifiEnabledStatusIndMsgT_v02)}
+     sizeof(qmiLocNotifyWifiEnabledStatusIndMsgT_v02)},
+
+   { QMI_LOC_SET_GNSS_CONSTELL_REPORT_CONFIG_IND_V02,
+     sizeof(qmiLocSetGNSSConstRepConfigIndMsgT_v02)}
 };
 
 
@@ -1226,6 +1240,12 @@ static bool locClientHandleIndication(
       break;
     }
 
+    case QMI_LOC_SET_GNSS_CONSTELL_REPORT_CONFIG_IND_V02:
+    {
+        status = true;
+        break;
+    }
+
     // for indications that only have a "status" field
     case QMI_LOC_NI_USER_RESPONSE_IND_V02:
     case QMI_LOC_INJECT_UTC_TIME_IND_V02:
@@ -1259,6 +1279,9 @@ static bool locClientHandleIndication(
     case QMI_LOC_INJECT_WIFI_AP_DATA_IND_V02:
     case QMI_LOC_NOTIFY_WIFI_ATTACHMENT_STATUS_IND_V02:
     case QMI_LOC_NOTIFY_WIFI_ENABLED_STATUS_IND_V02:
+    case QMI_LOC_EVENT_GNSS_MEASUREMENT_REPORT_IND_V02:
+    case QMI_LOC_EVENT_SV_POLYNOMIAL_REPORT_IND_V02:
+
     {
       status = true;
       break;
@@ -1877,6 +1900,12 @@ static bool validateRequest(
     {
       *pOutLen = sizeof(qmiLocNotifyWifiEnabledStatusReqMsgT_v02);
       break;
+    }
+
+    case QMI_LOC_SET_GNSS_CONSTELL_REPORT_CONFIG_V02:
+    {
+        *pOutLen = sizeof(qmiLocSetGNSSConstRepConfigReqMsgT_v02);
+        break;
     }
 
     // ALL requests with no payload
