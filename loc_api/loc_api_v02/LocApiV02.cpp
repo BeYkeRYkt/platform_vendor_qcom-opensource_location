@@ -483,6 +483,17 @@ enum loc_api_adapter_err LocApiV02 ::
 
   inject_pos_msg.horConfidence = 63; // 63% (1 std dev assumed)
 
+  inject_pos_msg.timestampUtc_valid = 1;
+  {
+        /* The UTC time from modem is not valid.
+        In this case, we use current system time instead.*/
+
+        struct timespec time_info_current;
+        clock_gettime(CLOCK_REALTIME,&time_info_current);
+        inject_pos_msg.timestampUtc = (time_info_current.tv_sec)*1e3 +
+                           (time_info_current.tv_nsec)/1e6;
+    }
+
     /* Log */
   LOC_LOGD("%s:%d]: Lat=%lf, Lon=%lf, Acc=%.2lf\n", __func__, __LINE__,
                 inject_pos_msg.latitude, inject_pos_msg.longitude,
@@ -2582,9 +2593,15 @@ enum loc_api_adapter_err LocApiV02 ::
     zppLoc.timestamp = zpp_ind.timestampUtc;
   }
   else {
-    // no valid flag in GpsLocation structure to indicate if timestamp field is valid
-    zppLoc.timestamp = -1;
-  }
+        /* The UTC time from modem is not valid.
+        In this case, we use current system time instead.*/
+
+        struct timespec time_info_current;
+        clock_gettime(CLOCK_REALTIME,&time_info_current);
+        zppLoc.timestamp = (time_info_current.tv_sec)*1e3 +
+                           (time_info_current.tv_nsec)/1e6;
+        LOC_LOGD("zpp timestamp got from system: %llu", zppLoc.timestamp);
+    }
 
   if ((zpp_ind.latitude_valid == false) ||
       (zpp_ind.longitude_valid == false) ||
