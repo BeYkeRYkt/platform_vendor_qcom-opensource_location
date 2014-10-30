@@ -2587,9 +2587,7 @@ void LocApiV02 :: reportNmea (
   LocApiBase::reportNmea(nmea_report_ptr->nmea,
                          strlen(nmea_report_ptr->nmea));
 
-  LOC_LOGD("%s:%d]: $%c%c%c\n", __func__, __LINE__,
-                  nmea_report_ptr->nmea[3], nmea_report_ptr->nmea[4],
-                  nmea_report_ptr->nmea[5]);
+  LOC_LOGD("NMEA <%s", nmea_report_ptr->nmea);
 }
 
 /* convert and report an ATL request to loc engine */
@@ -3099,6 +3097,7 @@ enum loc_api_adapter_err LocApiV02 ::
 
   memset(&zpp_ind, 0, sizeof(zpp_ind));
   memset(&zpp_req, 0, sizeof(zpp_req));
+  memset(&zppLoc, 0, sizeof(zppLoc));
 
   req_union.pGetBestAvailablePositionReq = &zpp_req;
 
