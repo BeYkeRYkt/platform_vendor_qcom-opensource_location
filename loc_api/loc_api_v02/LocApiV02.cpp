@@ -2670,10 +2670,14 @@ enum loc_api_adapter_err LocApiV02 ::
   zppLoc.size = sizeof(GpsLocation);
   if (zpp_ind.timestampUtc_valid) {
     zppLoc.timestamp = zpp_ind.timestampUtc;
-  }
-  else {
-    // no valid flag in GpsLocation structure to indicate if timestamp field is valid
-    zppLoc.timestamp = -1;
+  } else {
+    /* The UTC time from modem is not valid.
+       In this case, we use current system time instead.*/
+    struct timespec time_info_current;
+    clock_gettime(CLOCK_REALTIME,&time_info_current);
+    zppLoc.timestamp = (time_info_current.tv_sec)*1e3 +
+                       (time_info_current.tv_nsec)/1e6;
+    LOC_LOGD("zpp timestamp got from system: %llu", zppLoc.timestamp);
   }
 
   if ((zpp_ind.latitude_valid == false) ||
