@@ -235,14 +235,13 @@ LocApiV02 :: open(LOC_API_ADAPTER_EVENT_MASK_T mask)
     else {
         mMask = newMask;
         mQmiMask = qmiMask;
-
-        /*Set the SV Measurement Constellation when Measurement Report or Polynomial report is set*/
-        if( (qmiMask & QMI_LOC_EVENT_MASK_GNSS_MEASUREMENT_REPORT_V02) ||
-            (qmiMask & QMI_LOC_EVENT_MASK_GNSS_SV_POLYNOMIAL_REPORT_V02) )
-        {
-            setSvMeasurementConstellation(eQMI_SYSTEM_GPS_V02|eQMI_SYSTEM_GLO_V02);
-        }
     }
+  }
+  /*Set the SV Measurement Constellation when Measurement Report or Polynomial report is set*/
+  if( (qmiMask & QMI_LOC_EVENT_MASK_GNSS_MEASUREMENT_REPORT_V02) ||
+      (qmiMask & QMI_LOC_EVENT_MASK_GNSS_SV_POLYNOMIAL_REPORT_V02) )
+  {
+     setSvMeasurementConstellation(eQMI_SYSTEM_GPS_V02|eQMI_SYSTEM_GLO_V02);
   }
   LOC_LOGD("%s:%d]: Exit mMask: %x; mask: %x mQmiMask: %lld qmiMask: %lld",
            __func__, __LINE__, mMask, mask, mQmiMask, qmiMask);
