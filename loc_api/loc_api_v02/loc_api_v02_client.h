@@ -560,6 +560,17 @@ typedef union
         To send this request, set the reqId field in locClientSendReq() to
         QMI_LOC_GET_BEST_AVAILABLE_POSITION_REQ_V02. @newpagetable */
 
+    const qmiLocSecureGetAvailablePositionReqMsgT_v02*
+         pSecureGetBestAvailablePositionReq;
+       /**< Get the best available position from location engine
+
+           If the request is accepted by the service, the client receives the
+           following indication containing a response:
+           QMI_LOC_GET_BEST_AVAILABLE_POSITION_IND_V02
+
+           To send this request, set the reqId field in locClientSendReq() to
+           QMI_LOC_GET_BEST_AVAILABLE_POSITION_REQ_V02. @newpagetable */
+
     const qmiLocInjectMotionDataReqMsgT_v02* pInjectMotionDataReq;
     /**< Inject motion data in the location engine
 
@@ -883,6 +894,11 @@ typedef union
    /**< Sent by the engine to notify the client of the status of the
       DBT session.
       QMI_LOC_EVENT_DBT_SESSION_STATUS_IND_V02*/
+
+   const qmiLocEventGeofenceBatchedDwellIndMsgT_v02 *pGeofenceBatchedDwellEvent;
+   /**< Sent by the engine to notify the client of the dwell time inside
+      or outside of a Geofence for a specified time.
+      QMI_LOC_EVENT_GEOFENCE_BATCHED_DWELL_NOTIFICATION_IND_V02*/
 }locClientEventIndUnionType;
 
 
@@ -1222,6 +1238,13 @@ typedef union
         The respIndId field in the response indication callback is set to
         QMI_LOC_GET_BEST_AVAILABLE_POSITION_IND_V02. */
 
+   const qmiLocSecureGetAvailablePositionIndMsgT_v02*
+      pSecureGetBestAvailablePositionInd;
+   /**< Response to the QMI_LOC_SECURE_GET_AVAILABLE_POSITION_REQ_V02 request.
+
+        The respIndId field in the response indication callback is set to
+        QMI_LOC_SECURE_GET_AVAILABLE_POSITION_IND_V02. */
+
    const qmiLocInjectMotionDataIndMsgT_v02* pInjectMotionDataInd;
    /**< Response to the QMI_LOC_INJECT_MOTION_DATA_REQ_V02 request.
 
@@ -1281,7 +1304,7 @@ typedef union
 
     const qmiLocSetXtraVersionCheckIndMsgT_v02 *pSetXtraVersionCheckInd;
     /*QMI_LOC_SET_XTRA_VERSION_CHECK_IND_V02*/
-    
+
     const qmiLocSetGNSSConstRepConfigIndMsgT_v02 *pSetGNSSConstRepConfigInd;
     /*QMI_LOC_SET_GNSS_CONSTELL_REPORT_CONFIG_IND_V02*/
 

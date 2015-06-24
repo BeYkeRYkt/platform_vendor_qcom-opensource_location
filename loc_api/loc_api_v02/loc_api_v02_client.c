@@ -240,7 +240,11 @@ static locClientEventIndTableStructT locClientEventIndTable[]= {
 
   { QMI_LOC_EVENT_DBT_POSITION_REPORT_IND_V02,
     sizeof(qmiLocEventDbtPositionReportIndMsgT_v02),
-    0}
+    0},
+
+  { QMI_LOC_EVENT_GEOFENCE_BATCHED_DWELL_NOTIFICATION_IND_V02,
+    sizeof(qmiLocEventGeofenceBatchedDwellIndMsgT_v02),
+    QMI_LOC_EVENT_MASK_GEOFENCE_BATCH_DWELL_NOTIFICATION_V02}
 };
 
 /* table to relate the respInd Id with its size */
@@ -454,6 +458,10 @@ static locClientRespIndTableStructT locClientRespIndTable[]= {
    //Get best available position
    { QMI_LOC_GET_BEST_AVAILABLE_POSITION_IND_V02,
      sizeof(qmiLocGetBestAvailablePositionIndMsgT_v02)},
+
+   //Secure Get available position
+   { QMI_LOC_SECURE_GET_AVAILABLE_POSITION_IND_V02,
+     sizeof(qmiLocSecureGetAvailablePositionIndMsgT_v02)},
 
    //Inject motion data
    { QMI_LOC_INJECT_MOTION_DATA_IND_V02,
@@ -1224,6 +1232,12 @@ static bool validateRequest(
     case QMI_LOC_GET_BEST_AVAILABLE_POSITION_REQ_V02:
     {
       *pOutLen = sizeof(qmiLocGetBestAvailablePositionReqMsgT_v02);
+      break;
+    }
+
+    case QMI_LOC_SECURE_GET_AVAILABLE_POSITION_REQ_V02:
+    {
+      *pOutLen = sizeof(qmiLocSecureGetAvailablePositionReqMsgT_v02);
       break;
     }
 
