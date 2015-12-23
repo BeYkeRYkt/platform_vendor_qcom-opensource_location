@@ -63,7 +63,7 @@
  *====*====*====*====*====*====*====*====*====*====*====*====*====*====*====*/
 
 /* This file was generated with Tool version 6.14.7
-   It was generated on: Fri Nov 13 2015 (Spin 0)
+   It was generated on: Tue Dec  1 2015 (Spin 0)
    From IDL File: location_service_v02.idl */
 
 /** @defgroup loc_qmi_consts Constant values defined in the IDL */
@@ -89,7 +89,7 @@ extern "C" {
 /** Major Version Number of the IDL used to generate this file */
 #define LOC_V02_IDL_MAJOR_VERS 0x02
 /** Revision Number of the IDL used to generate this file */
-#define LOC_V02_IDL_MINOR_VERS 0x30
+#define LOC_V02_IDL_MINOR_VERS 0x31
 /** Major Version Number of the qmi_idl_compiler used to generate this file */
 #define LOC_V02_IDL_TOOL_VERS 0x06
 /** Maximum Defined Message ID */
@@ -6191,6 +6191,16 @@ typedef struct {
        set, AFLT will be used for 1X networks and OTDOA will be used
        for LTE networks
  */
+
+  /* Optional */
+  /*  Minimum Interval Between Position Reports */
+  uint8_t minInterval_valid;  /**< Must be set to true if minInterval is being passed */
+  uint32_t minInterval;
+  /**<   Minimum time interval, specified by the control point, that must elapse between
+       position reports. \n
+       - Units: milliseconds \n
+       - Default: 1000 ms
+  */
 }qmiLocSetOperationModeReqMsgT_v02;  /* Message */
 /**
     @}
@@ -15297,6 +15307,7 @@ typedef uint32_t qmiLocAonCapabilityMaskT_v02;
 #define QMI_LOC_MASK_AON_DISTANCE_BASED_BATCHING_SUPPORTED_V02 ((qmiLocAonCapabilityMaskT_v02)0x00000002) /**<  The service supports distance-based batching  */
 #define QMI_LOC_MASK_AON_TIME_BASED_BATCHING_SUPPORTED_V02 ((qmiLocAonCapabilityMaskT_v02)0x00000004) /**<  The service supports time-based batching */
 #define QMI_LOC_MASK_AON_DISTANCE_BASED_TRACKING_SUPPORTED_V02 ((qmiLocAonCapabilityMaskT_v02)0x00000008) /**<  The service supports distance-based tracking  */
+#define QMI_LOC_MASK_AON_UPDATE_TBF_SUPPORTED_V02 ((qmiLocAonCapabilityMaskT_v02)0x00000010) /**<  The service supports to change TBF dynamically  */
 /** @addtogroup loc_qmi_messages
     @{
   */
@@ -15356,7 +15367,8 @@ typedef struct {
        batching by setting the distance parameter to 0 in the START_BATCHING request
       - QMI_LOC_MASK_AON_DISTANCE_BASED_BATCHING_SUPPORTED (0x00000002) --  The service supports distance-based batching
       - QMI_LOC_MASK_AON_TIME_BASED_BATCHING_SUPPORTED (0x00000004) --  The service supports time-based batching
-      - QMI_LOC_MASK_AON_DISTANCE_BASED_TRACKING_SUPPORTED (0x00000008) --  The service supports distance-based tracking */
+      - QMI_LOC_MASK_AON_DISTANCE_BASED_TRACKING_SUPPORTED (0x00000008) --  The service supports distance-based tracking
+      - QMI_LOC_MASK_AON_UPDATE_TBF_SUPPORTED (0x00000010) --  The service supports to change TBF dynamically */
 }qmiLocQueryAonConfigIndMsgT_v02;  /* Message */
 /**
     @}
