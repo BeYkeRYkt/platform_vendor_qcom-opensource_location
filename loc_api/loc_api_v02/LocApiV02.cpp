@@ -281,7 +281,8 @@ LocApiV02 :: open(LOC_API_ADAPTER_EVENT_MASK_T mask)
                              loc_get_v02_client_status_name(status),
                              loc_get_v02_qmi_status_name(queryAonConfigInd.status));
                 } else {
-                    LOC_LOGD("%s:%d]: Query AON config succeeded.\n", __func__, __LINE__);
+                    LOC_LOGD("%s:%d]: Query AON config succeeded. aonCapability is %d.\n",
+                             __func__, __LINE__, queryAonConfigInd.aonCapability);
                     if (queryAonConfigInd.aonCapability_valid) {
                         if (queryAonConfigInd.aonCapability |
                             QMI_LOC_MASK_AON_TIME_BASED_BATCHING_SUPPORTED_V02) {
@@ -302,6 +303,13 @@ LocApiV02 :: open(LOC_API_ADAPTER_EVENT_MASK_T mask)
                         if (queryAonConfigInd.aonCapability |
                             QMI_LOC_MASK_AON_DISTANCE_BASED_TRACKING_SUPPORTED_V02) {
                             LOC_LOGD("%s:%d]: DBT 2.0 is supported.\n", __func__, __LINE__);
+                        }
+                        if (queryAonConfigInd.aonCapability |
+                            QMI_LOC_MASK_AON_UPDATE_TBF_SUPPORTED_V02) {
+                            LOC_LOGD("%s:%d]: Updating tracking TBF on the fly is supported.\n",
+                            __func__, __LINE__);
+                            supportedMsgList |=
+                                (1 << LOC_API_ADAPTER_MESSAGE_UPDATE_TBF_ON_THE_FLY);
                         }
                     } else {
                         LOC_LOGE("%s:%d]: AON capability is invalid.\n", __func__, __LINE__);
@@ -1666,37 +1674,37 @@ locClientEventMaskType LocApiV02 :: convertMask(
   if (mask & LOC_API_ADAPTER_BIT_LOCATION_SERVER_REQUEST)
       eventMask |= QMI_LOC_EVENT_MASK_LOCATION_SERVER_CONNECTION_REQ_V02;
 
-  if (mask & LOC_API_ADAPTER_REQUEST_WIFI)
+  if (mask & LOC_API_ADAPTER_BIT_REQUEST_WIFI)
       eventMask |= QMI_LOC_EVENT_MASK_WIFI_REQ_V02;
 
-  if (mask & LOC_API_ADAPTER_SENSOR_STATUS)
+  if (mask & LOC_API_ADAPTER_BIT_SENSOR_STATUS)
       eventMask |= QMI_LOC_EVENT_MASK_SENSOR_STREAMING_READY_STATUS_V02;
 
-  if (mask & LOC_API_ADAPTER_REQUEST_TIME_SYNC)
+  if (mask & LOC_API_ADAPTER_BIT_REQUEST_TIME_SYNC)
       eventMask |= QMI_LOC_EVENT_MASK_TIME_SYNC_REQ_V02;
 
-  if (mask & LOC_API_ADAPTER_REPORT_SPI)
+  if (mask & LOC_API_ADAPTER_BIT_REPORT_SPI)
       eventMask |= QMI_LOC_EVENT_MASK_SET_SPI_STREAMING_REPORT_V02;
 
-  if (mask & LOC_API_ADAPTER_REPORT_NI_GEOFENCE)
+  if (mask & LOC_API_ADAPTER_BIT_REPORT_NI_GEOFENCE)
       eventMask |= QMI_LOC_EVENT_MASK_NI_GEOFENCE_NOTIFICATION_V02;
 
-  if (mask & LOC_API_ADAPTER_GEOFENCE_GEN_ALERT)
+  if (mask & LOC_API_ADAPTER_BIT_GEOFENCE_GEN_ALERT)
       eventMask |= QMI_LOC_EVENT_MASK_GEOFENCE_GEN_ALERT_V02;
 
-  if (mask & LOC_API_ADAPTER_REPORT_GENFENCE_BREACH)
+  if (mask & LOC_API_ADAPTER_BIT_REPORT_GENFENCE_BREACH)
       eventMask |= QMI_LOC_EVENT_MASK_GEOFENCE_BREACH_NOTIFICATION_V02;
 
-  if (mask & LOC_API_ADAPTER_BATCHED_GENFENCE_BREACH_REPORT)
+  if (mask & LOC_API_ADAPTER_BIT_BATCHED_GENFENCE_BREACH_REPORT)
       eventMask |= QMI_LOC_EVENT_MASK_GEOFENCE_BATCH_BREACH_NOTIFICATION_V02;
 
-  if (mask & LOC_API_ADAPTER_PEDOMETER_CTRL)
+  if (mask & LOC_API_ADAPTER_BIT_PEDOMETER_CTRL)
       eventMask |= QMI_LOC_EVENT_MASK_PEDOMETER_CONTROL_V02;
 
-  if (mask & LOC_API_ADAPTER_MOTION_CTRL)
+  if (mask & LOC_API_ADAPTER_BIT_MOTION_CTRL)
       eventMask |= QMI_LOC_EVENT_MASK_MOTION_DATA_CONTROL_V02;
 
-  if (mask & LOC_API_ADAPTER_REQUEST_WIFI_AP_DATA)
+  if (mask & LOC_API_ADAPTER_BIT_REQUEST_WIFI_AP_DATA)
       eventMask |= QMI_LOC_EVENT_MASK_INJECT_WIFI_AP_DATA_REQ_V02;
 
   if(mask & LOC_API_ADAPTER_BIT_BATCH_FULL)
