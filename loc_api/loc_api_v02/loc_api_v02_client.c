@@ -613,7 +613,10 @@ static const locClientRespIndTableStructT locClientRespIndTable[]= {
      sizeof(qmiLocInjectXtraDataIndMsgT_v02) },
 
    { QMI_LOC_INJECT_XTRA_PCID_IND_V02,
-     sizeof(qmiLocInjectXtraPcidIndMsgT_v02) }
+     sizeof(qmiLocInjectXtraPcidIndMsgT_v02) },
+   //Delete Gnss Service Data Resp Ind
+   { QMI_LOC_DELETE_GNSS_SERVICE_DATA_IND_V02,
+     sizeof(qmiLocDeleteGNSSServiceDataIndMsgT_v02) }
 };
 
 
@@ -1509,6 +1512,12 @@ static bool validateRequest(
     {
         *pOutLen = sizeof(qmiLocGdtDownloadEndStatusReqMsgT_v02);
         break;
+    }
+
+    case QMI_LOC_DELETE_GNSS_SERVICE_DATA_REQ_V02:
+    {
+      *pOutLen = sizeof(qmiLocDeleteGNSSServiceDataReqMsgT_v02);
+      break;
     }
 
     // XTRA Client 2.0

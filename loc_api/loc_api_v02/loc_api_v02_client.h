@@ -718,6 +718,9 @@ typedef union
 
     const qmiLocInjectXtraPcidReqMsgT_v02 *pInjectXtraPcidReq;
     /*QMI_LOC_INJECT_XTRA_PCID_REQ_V02*/
+
+    const qmiLocDeleteGNSSServiceDataReqMsgT_v02* pDeleteGNSSServiceDataReq;
+    /* QMI_LOC_DELETE_GNSS_SERVICE_DATA_REQ_V02*/
 }locClientReqUnionType;
 
 
@@ -1420,6 +1423,9 @@ typedef union
 
     const qmiLocGdtDownloadEndStatusIndMsgT_v02 *pGdtDownloadEndStatusInd;
     /*QMI_LOC_GDT_DOWNLOAD_END_STATUS_IND_V02*/
+	
+	const qmiLocDeleteGNSSServiceDataIndMsgT_v02 *pDeleteGNSSServiceDataInd;
+	/* QMI_LOC_DELETE_GNSS_SERVICE_DATA_REQ_V02*/
 }locClientRespIndUnionType;
 
 /** @} */ /* end_addtogroup data_types */
