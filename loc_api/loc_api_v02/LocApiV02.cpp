@@ -2117,6 +2117,21 @@ void  LocApiV02 :: reportSv (
             SvStatus.sv_list[SvStatus.num_svs].prn =
                 sv_info_ptr->gnssSvId;
         }
+        //In extended measurement report, we follow nmea standard,
+        //which is 301-336
+        else if(sv_info_ptr->system == eQMI_LOC_SV_SYSTEM_GALILEO_V02)
+        {
+
+            if((sv_info_ptr->validMask &
+              QMI_LOC_SV_INFO_MASK_VALID_PROCESS_STATUS_V02)
+             &&
+             (sv_info_ptr->svStatus == eQMI_LOC_SV_STATUS_TRACK_V02))
+          {
+            SvStatus.gal_used_in_fix_mask |= (1 << (sv_info_ptr->gnssSvId-1-300));
+          }
+            SvStatus.sv_list[SvStatus.num_svs].prn =
+                sv_info_ptr->gnssSvId;
+        }
         // Unsupported SV system
         else
         {
