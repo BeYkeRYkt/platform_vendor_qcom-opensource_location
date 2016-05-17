@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -63,7 +63,7 @@
  *====*====*====*====*====*====*====*====*====*====*====*====*====*====*====*/
 
 /* This file was generated with Tool version 6.14.7
-   It was generated on: Tue Dec  1 2015 (Spin 0)
+   It was generated on: Mon Jan 18 2016 (Spin 0)
    From IDL File: location_service_v02.idl */
 
 /** @defgroup loc_qmi_consts Constant values defined in the IDL */
@@ -89,11 +89,11 @@ extern "C" {
 /** Major Version Number of the IDL used to generate this file */
 #define LOC_V02_IDL_MAJOR_VERS 0x02
 /** Revision Number of the IDL used to generate this file */
-#define LOC_V02_IDL_MINOR_VERS 0x31
+#define LOC_V02_IDL_MINOR_VERS 0x32
 /** Major Version Number of the qmi_idl_compiler used to generate this file */
 #define LOC_V02_IDL_TOOL_VERS 0x06
 /** Maximum Defined Message ID */
-#define LOC_V02_MAX_MESSAGE_ID 0x00A6
+#define LOC_V02_MAX_MESSAGE_ID 0x00A8
 /**
     @}
   */
@@ -315,6 +315,11 @@ extern "C" {
 
 /**  Maximum number of APs that can be injected in a TLV.  */
 #define QMI_LOC_APCACHE_DATA_MAX_SAMPLES_V02 80
+
+/**  Maximum part length that can be injected. The client should
+     also look at the maxPartSize field in the predicted orbits injection
+     request indication and pick the minimum of the two.  */
+#define QMI_LOC_MAX_XTRA_PART_LEN_V02 1024
 /**
     @}
   */
@@ -4525,7 +4530,7 @@ typedef struct {
       - eQMI_LOC_RELIABILITY_NOT_SET (0) --  Location reliability is not set
       - eQMI_LOC_RELIABILITY_VERY_LOW (1) --  Location reliability is very low; use it at your own risk
       - eQMI_LOC_RELIABILITY_LOW (2) --  Location reliability is low; little or no cross-checking is possible
-      - eQMI_LOC_RELIABILITY_MEDIUM (3) --  Location reliability is medium; limited cross-check passed
+      - eQMI_LOC_RELIABILITY_MEDIUM (3) --  Location reliability is medium; limited cross-check passe
       - eQMI_LOC_RELIABILITY_HIGH (4) --  Location reliability is high; strong cross-check passed
  */
 
@@ -7939,7 +7944,7 @@ typedef struct {
       - QMI_LOC_SENSOR_PROPERTIES_MASK_VEHICLE_VELOCITY_RWSD (0x00000040) --  Denotes the vehicle velocity random walk spectral density
       - QMI_LOC_SENSOR_PROPERTIES_MASK_VEHICLE_ACCEL_RWSD (0x00000080) --  Denotes the vehicle accelerometer random walk spectral density
       - QMI_LOC_SENSOR_PROPERTIES_MASK_VEHICLE_ANGLE_RWSD (0x00000100) --  Denotes the vehicle angle random walk spectral density
-      - QMI_LOC_SENSOR_PROPERTIES_MASK_VEHICLE_ANGULAR_RATE_RWSD (0x00000200) --  Denotes the vehicle angular rate random walk spectral density
+      - QMI_LOC_SENSOR_PROPERTIES_MASK_VEHICLE_ANGULAR_RATE_RWSD (0x00000200) --  Denotes the vehicle angular rate random walk spectral densit
       - QMI_LOC_SENSOR_PROPERTIES_MASK_VEHICLE_ODOMETRY_SCALE_RWSD (0x00000400) --  Denotes the vehicle odometry scale random walk spectral density
       - QMI_LOC_SENSOR_PROPERTIES_MASK_VEHICLE_ODOMETRY_VARIANCE (0x00000800) --  Denotes the vehicle odometry variance
  \vspace{-0.18in} \end{itemize1}
@@ -15565,6 +15570,141 @@ typedef struct {
     @}
   */
 
+/** @addtogroup loc_qmi_enums
+    @{
+  */
+typedef enum {
+  QMILOCXTRADATAFORMATENUMT_MIN_ENUM_VAL_V02 = -2147483647, /**< To force a 32 bit signed enum.  Do not change or use*/
+  eQMI_LOC_XTRA_DATA_V02 = 0, /**<  Default is QCOM-XTRA format.  */
+  QMILOCXTRADATAFORMATENUMT_MAX_ENUM_VAL_V02 = 2147483647 /**< To force a 32 bit signed enum.  Do not change or use*/
+}qmiLocXtraDataFormatEnumT_v02;
+/**
+    @}
+  */
+
+/** @addtogroup loc_qmi_messages
+    @{
+  */
+/** Request Message; Injects XTRA data. */
+typedef struct {
+
+  /* Mandatory */
+  /*  Total Size */
+  uint32_t totalSize;
+  /**<   Total size of the XTRA data to be injected. \n
+        - Units: Bytes */
+
+  /* Mandatory */
+  /*  Total Parts */
+  uint16_t totalParts;
+  /**<   Total number of parts into which the XTRA data is divided. */
+
+  /* Mandatory */
+  /*  Part Number */
+  uint16_t partNum;
+  /**<   Number of the current XTRA data part; starts at 1. */
+
+  /* Mandatory */
+  /*  Data */
+  uint32_t partData_len;  /**< Must be set to # of elements in partData */
+  uint8_t partData[QMI_LOC_MAX_XTRA_PART_LEN_V02];
+  /**<   XTRA data. \n
+         - Type: Array of bytes \n
+         - Maximum length of the array: 1024
+    */
+
+  /* Optional */
+  /*  Format Type */
+  uint8_t formatType_valid;  /**< Must be set to true if formatType is being passed */
+  qmiLocXtraDataFormatEnumT_v02 formatType;
+  /**<   XTRA data format. \n
+ Valid values: \n
+      - eQMI_LOC_XTRA_DATA (0) --  Default is QCOM-XTRA format.
+ */
+}qmiLocInjectXtraDataReqMsgT_v02;  /* Message */
+/**
+    @}
+  */
+
+/** @addtogroup loc_qmi_messages
+    @{
+  */
+/** Indication Message; Injects XTRA data. */
+typedef struct {
+
+  /* Mandatory */
+  /*  Data Injection Status */
+  qmiLocStatusEnumT_v02 status;
+  /**<   Status of the Data Injection request.
+
+ Valid values: \n
+      - eQMI_LOC_SUCCESS (0) --  Request was completed successfully \n
+      - eQMI_LOC_GENERAL_FAILURE (1) --  Request failed because of a general failure \n
+      - eQMI_LOC_UNSUPPORTED (2) --  Request failed because it is not supported \n
+      - eQMI_LOC_INVALID_PARAMETER (3) --  Request failed because it contained invalid parameters \n
+      - eQMI_LOC_ENGINE_BUSY (4) --  Request failed because the engine is busy \n
+      - eQMI_LOC_PHONE_OFFLINE (5) --  Request failed because the phone is offline \n
+      - eQMI_LOC_TIMEOUT (6) --  Request failed because it timed out \n
+      - eQMI_LOC_CONFIG_NOT_SUPPORTED (7) --  Request failed because an undefined configuration was requested \n
+      - eQMI_LOC_INSUFFICIENT_MEMORY (8) --  Request failed because the engine could not allocate sufficient memory for the request \n
+      - eQMI_LOC_MAX_GEOFENCE_PROGRAMMED (9) --  Request failed because the maximum number of Geofences are already programmed \n
+      - eQMI_LOC_XTRA_VERSION_CHECK_FAILURE (10) --  Location service failed because of an XTRA version-based file format check failure
+ */
+
+  /* Optional */
+  /*  Part Number */
+  uint8_t partNum_valid;  /**< Must be set to true if partNum is being passed */
+  uint16_t partNum;
+  /**<   Number of the XTRA data part for which this indication
+      is sent; starts at 1. */
+}qmiLocInjectXtraDataIndMsgT_v02;  /* Message */
+/**
+    @}
+  */
+
+/** @addtogroup loc_qmi_messages
+    @{
+  */
+/** Request Message; Used by the control point to inject PCID which is used by XTRA service. */
+typedef struct {
+
+  /* Mandatory */
+  /*  XTRA PCID */
+  uint64_t xtraPcid;
+  /**<   - Type: uint64 \n */
+}qmiLocInjectXtraPcidReqMsgT_v02;  /* Message */
+/**
+    @}
+  */
+
+/** @addtogroup loc_qmi_messages
+    @{
+  */
+/** Indication Message; Used by the control point to inject PCID which is used by XTRA service. */
+typedef struct {
+
+  /* Mandatory */
+  /*  Inject XTRA PCID Status */
+  qmiLocStatusEnumT_v02 status;
+  /**<   Status of the inject XTRA PCID.
+
+ Valid values: \n
+      - eQMI_LOC_SUCCESS (0) --  Request was completed successfully \n
+      - eQMI_LOC_GENERAL_FAILURE (1) --  Request failed because of a general failure \n
+      - eQMI_LOC_UNSUPPORTED (2) --  Request failed because it is not supported \n
+      - eQMI_LOC_INVALID_PARAMETER (3) --  Request failed because it contained invalid parameters \n
+      - eQMI_LOC_ENGINE_BUSY (4) --  Request failed because the engine is busy \n
+      - eQMI_LOC_PHONE_OFFLINE (5) --  Request failed because the phone is offline \n
+      - eQMI_LOC_TIMEOUT (6) --  Request failed because it timed out \n
+      - eQMI_LOC_CONFIG_NOT_SUPPORTED (7) --  Request failed because an undefined configuration was requested \n
+      - eQMI_LOC_INSUFFICIENT_MEMORY (8) --  Request failed because the engine could not allocate sufficient memory for the request \n
+      - eQMI_LOC_MAX_GEOFENCE_PROGRAMMED (9) --  Request failed because the maximum number of Geofences are already programmed \n
+      - eQMI_LOC_XTRA_VERSION_CHECK_FAILURE (10) --  Location service failed because of an XTRA version-based file format check failure  */
+}qmiLocInjectXtraPcidIndMsgT_v02;  /* Message */
+/**
+    @}
+  */
+
 /* Conditional compilation tags for message removal */
 //#define REMOVE_QMI_LOC_ADD_CIRCULAR_GEOFENCE_V02
 //#define REMOVE_QMI_LOC_ADD_GEOFENCE_CONTEXT_V02
@@ -15666,6 +15806,8 @@ typedef struct {
 //#define REMOVE_QMI_LOC_INJECT_WCDMA_CELL_INFO_V02
 //#define REMOVE_QMI_LOC_INJECT_WIFI_AP_DATA_V02
 //#define REMOVE_QMI_LOC_INJECT_WIFI_POSITION_V02
+//#define REMOVE_QMI_LOC_INJECT_XTRA_DATA_V02
+//#define REMOVE_QMI_LOC_INJECT_XTRA_PCID_V02
 //#define REMOVE_QMI_LOC_NOTIFY_WIFI_ATTACHMENT_STATUS_V02
 //#define REMOVE_QMI_LOC_NOTIFY_WIFI_ENABLED_STATUS_V02
 //#define REMOVE_QMI_LOC_NOTIFY_WIFI_STATUS_V02
@@ -16039,6 +16181,12 @@ typedef struct {
 #define QMI_LOC_DELETE_GNSS_SERVICE_DATA_REQ_V02 0x00A6
 #define QMI_LOC_DELETE_GNSS_SERVICE_DATA_RESP_V02 0x00A6
 #define QMI_LOC_DELETE_GNSS_SERVICE_DATA_IND_V02 0x00A6
+#define QMI_LOC_INJECT_XTRA_DATA_REQ_V02 0x00A7
+#define QMI_LOC_INJECT_XTRA_DATA_RESP_V02 0x00A7
+#define QMI_LOC_INJECT_XTRA_DATA_IND_V02 0x00A7
+#define QMI_LOC_INJECT_XTRA_PCID_REQ_V02 0x00A8
+#define QMI_LOC_INJECT_XTRA_PCID_RESP_V02 0x00A8
+#define QMI_LOC_INJECT_XTRA_PCID_IND_V02 0x00A8
 /**
     @}
   */

@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -25,12 +25,13 @@
  * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
  * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 /*====*====*====*====*====*====*====*====*====*====*====*====*====*====*====*
  *THIS IS AN AUTO GENERATED FILE. DO NOT ALTER IN ANY WAY
  *====*====*====*====*====*====*====*====*====*====*====*====*====*====*====*/
 
 /* This file was generated with Tool version 6.14.7
-   It was generated on: Tue Dec  1 2015 (Spin 0)
+   It was generated on: Mon Jan 18 2016 (Spin 0)
    From IDL File: location_service_v02.idl */
 
 #include "stdint.h"
@@ -5230,6 +5231,54 @@ static const uint8_t qmiLocDeleteGNSSServiceDataIndMsgT_data_v02[] = {
   QMI_IDL_OFFSET8(qmiLocDeleteGNSSServiceDataIndMsgT_v02, status)
 };
 
+static const uint8_t qmiLocInjectXtraDataReqMsgT_data_v02[] = {
+  0x01,
+   QMI_IDL_GENERIC_4_BYTE,
+  QMI_IDL_OFFSET8(qmiLocInjectXtraDataReqMsgT_v02, totalSize),
+
+  0x02,
+   QMI_IDL_GENERIC_2_BYTE,
+  QMI_IDL_OFFSET8(qmiLocInjectXtraDataReqMsgT_v02, totalParts),
+
+  0x03,
+   QMI_IDL_GENERIC_2_BYTE,
+  QMI_IDL_OFFSET8(qmiLocInjectXtraDataReqMsgT_v02, partNum),
+
+  0x04,
+  QMI_IDL_FLAGS_IS_ARRAY | QMI_IDL_FLAGS_IS_VARIABLE_LEN | QMI_IDL_FLAGS_SZ_IS_16 |   QMI_IDL_GENERIC_1_BYTE,
+  QMI_IDL_OFFSET8(qmiLocInjectXtraDataReqMsgT_v02, partData),
+  ((QMI_LOC_MAX_XTRA_PART_LEN_V02) & 0xFF), ((QMI_LOC_MAX_XTRA_PART_LEN_V02) >> 8),
+  QMI_IDL_OFFSET8(qmiLocInjectXtraDataReqMsgT_v02, partData) - QMI_IDL_OFFSET8(qmiLocInjectXtraDataReqMsgT_v02, partData_len),
+
+  QMI_IDL_TLV_FLAGS_LAST_TLV | QMI_IDL_TLV_FLAGS_OPTIONAL | (QMI_IDL_OFFSET16RELATIVE(qmiLocInjectXtraDataReqMsgT_v02, formatType) - QMI_IDL_OFFSET16RELATIVE(qmiLocInjectXtraDataReqMsgT_v02, formatType_valid)),
+  0x10,
+   QMI_IDL_FLAGS_OFFSET_IS_16 | QMI_IDL_GENERIC_4_BYTE,
+  QMI_IDL_OFFSET16ARRAY(qmiLocInjectXtraDataReqMsgT_v02, formatType)
+};
+
+static const uint8_t qmiLocInjectXtraDataIndMsgT_data_v02[] = {
+  0x01,
+   QMI_IDL_GENERIC_4_BYTE,
+  QMI_IDL_OFFSET8(qmiLocInjectXtraDataIndMsgT_v02, status),
+
+  QMI_IDL_TLV_FLAGS_LAST_TLV | QMI_IDL_TLV_FLAGS_OPTIONAL | (QMI_IDL_OFFSET8(qmiLocInjectXtraDataIndMsgT_v02, partNum) - QMI_IDL_OFFSET8(qmiLocInjectXtraDataIndMsgT_v02, partNum_valid)),
+  0x10,
+   QMI_IDL_GENERIC_2_BYTE,
+  QMI_IDL_OFFSET8(qmiLocInjectXtraDataIndMsgT_v02, partNum)
+};
+
+static const uint8_t qmiLocInjectXtraPcidReqMsgT_data_v02[] = {
+  QMI_IDL_TLV_FLAGS_LAST_TLV | 0x01,
+   QMI_IDL_GENERIC_8_BYTE,
+  QMI_IDL_OFFSET8(qmiLocInjectXtraPcidReqMsgT_v02, xtraPcid)
+};
+
+static const uint8_t qmiLocInjectXtraPcidIndMsgT_data_v02[] = {
+  QMI_IDL_TLV_FLAGS_LAST_TLV | 0x01,
+   QMI_IDL_GENERIC_4_BYTE,
+  QMI_IDL_OFFSET8(qmiLocInjectXtraPcidIndMsgT_v02, status)
+};
+
 /* Type Table */
 static const qmi_idl_type_table_entry  loc_type_table_v02[] = {
   {sizeof(qmiLocApplicationIdStructT_v02), qmiLocApplicationIdStructT_data_v02},
@@ -5532,7 +5581,11 @@ static const qmi_idl_message_table_entry loc_message_table_v02[] = {
   {sizeof(qmiLocQueryAonConfigReqMsgT_v02), qmiLocQueryAonConfigReqMsgT_data_v02},
   {sizeof(qmiLocQueryAonConfigIndMsgT_v02), qmiLocQueryAonConfigIndMsgT_data_v02},
   {sizeof(qmiLocDeleteGNSSServiceDataReqMsgT_v02), qmiLocDeleteGNSSServiceDataReqMsgT_data_v02},
-  {sizeof(qmiLocDeleteGNSSServiceDataIndMsgT_v02), qmiLocDeleteGNSSServiceDataIndMsgT_data_v02}
+  {sizeof(qmiLocDeleteGNSSServiceDataIndMsgT_v02), qmiLocDeleteGNSSServiceDataIndMsgT_data_v02},
+  {sizeof(qmiLocInjectXtraDataReqMsgT_v02), qmiLocInjectXtraDataReqMsgT_data_v02},
+  {sizeof(qmiLocInjectXtraDataIndMsgT_v02), qmiLocInjectXtraDataIndMsgT_data_v02},
+  {sizeof(qmiLocInjectXtraPcidReqMsgT_v02), qmiLocInjectXtraPcidReqMsgT_data_v02},
+  {sizeof(qmiLocInjectXtraPcidIndMsgT_v02), qmiLocInjectXtraPcidIndMsgT_data_v02}
 };
 
 /* Range Table */
@@ -5657,7 +5710,9 @@ static const qmi_idl_service_message_table_entry loc_service_command_messages_v0
   {QMI_LOC_GDT_DOWNLOAD_READY_STATUS_REQ_V02, QMI_IDL_TYPE16(0, 207), 280},
   {QMI_LOC_GDT_RECEIVE_DONE_STATUS_REQ_V02, QMI_IDL_TYPE16(0, 209), 21},
   {QMI_LOC_GDT_DOWNLOAD_END_STATUS_REQ_V02, QMI_IDL_TYPE16(0, 211), 21},
-  {QMI_LOC_DELETE_GNSS_SERVICE_DATA_REQ_V02, QMI_IDL_TYPE16(0, 228), 36}
+  {QMI_LOC_DELETE_GNSS_SERVICE_DATA_REQ_V02, QMI_IDL_TYPE16(0, 228), 36},
+  {QMI_LOC_INJECT_XTRA_DATA_REQ_V02, QMI_IDL_TYPE16(0, 230), 1053},
+  {QMI_LOC_INJECT_XTRA_PCID_REQ_V02, QMI_IDL_TYPE16(0, 232), 11}
 };
 
 static const qmi_idl_service_message_table_entry loc_service_response_messages_v02[] = {
@@ -5760,7 +5815,9 @@ static const qmi_idl_service_message_table_entry loc_service_response_messages_v
   {QMI_LOC_GDT_DOWNLOAD_READY_STATUS_RESP_V02, QMI_IDL_TYPE16(0, 0), 7},
   {QMI_LOC_GDT_RECEIVE_DONE_STATUS_RESP_V02, QMI_IDL_TYPE16(0, 0), 7},
   {QMI_LOC_GDT_DOWNLOAD_END_STATUS_RESP_V02, QMI_IDL_TYPE16(0, 0), 7},
-  {QMI_LOC_DELETE_GNSS_SERVICE_DATA_RESP_V02, QMI_IDL_TYPE16(0, 0), 7}
+  {QMI_LOC_DELETE_GNSS_SERVICE_DATA_RESP_V02, QMI_IDL_TYPE16(0, 0), 7},
+  {QMI_LOC_INJECT_XTRA_DATA_RESP_V02, QMI_IDL_TYPE16(0, 0), 7},
+  {QMI_LOC_INJECT_XTRA_PCID_RESP_V02, QMI_IDL_TYPE16(0, 0), 7}
 };
 
 static const qmi_idl_service_message_table_entry loc_service_indication_messages_v02[] = {
@@ -5894,7 +5951,9 @@ static const qmi_idl_service_message_table_entry loc_service_indication_messages
   {QMI_LOC_EVENT_GDT_DOWNLOAD_BEGIN_REQ_IND_V02, QMI_IDL_TYPE16(0, 29), 5804},
   {QMI_LOC_EVENT_GDT_RECEIVE_DONE_IND_V02, QMI_IDL_TYPE16(0, 30), 21},
   {QMI_LOC_EVENT_GDT_DOWNLOAD_END_REQ_IND_V02, QMI_IDL_TYPE16(0, 31), 21},
-  {QMI_LOC_DELETE_GNSS_SERVICE_DATA_IND_V02, QMI_IDL_TYPE16(0, 229), 7}
+  {QMI_LOC_DELETE_GNSS_SERVICE_DATA_IND_V02, QMI_IDL_TYPE16(0, 229), 7},
+  {QMI_LOC_INJECT_XTRA_DATA_IND_V02, QMI_IDL_TYPE16(0, 231), 12},
+  {QMI_LOC_INJECT_XTRA_PCID_IND_V02, QMI_IDL_TYPE16(0, 233), 7}
 };
 
 /*Service Object*/
@@ -5908,7 +5967,7 @@ struct qmi_idl_service_object loc_qmi_idl_service_object_v02 = {
     sizeof(loc_service_indication_messages_v02)/sizeof(qmi_idl_service_message_table_entry) },
   { loc_service_command_messages_v02, loc_service_response_messages_v02, loc_service_indication_messages_v02},
   &loc_qmi_idl_type_table_object_v02,
-  0x31,
+  0x32,
   NULL
 };
 
