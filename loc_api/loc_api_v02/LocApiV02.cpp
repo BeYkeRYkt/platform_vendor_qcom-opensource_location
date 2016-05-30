@@ -1948,6 +1948,14 @@ void  LocApiV02 :: reportSv (
             SvStatus.sv_list[SvStatus.num_svs].prn =
                 sv_info_ptr->gnssSvId;
         }
+        // QZSS: PRN is 193 to 197
+        // In extended measurement report, we follow nmea standard,
+        // which is 193 to 197.
+        else if(sv_info_ptr->system == eQMI_LOC_SV_SYSTEM_QZSS_V02)
+        {
+            SvStatus.sv_list[SvStatus.num_svs].prn =
+                sv_info_ptr->gnssSvId;
+        }
         // Unsupported SV system
         else
         {
