@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2016, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -169,6 +169,7 @@ LocApiV02 :: LocApiV02(const MsgTask* msgTask,
     clientHandle(LOC_CLIENT_INVALID_HANDLE_VALUE),
     dsClientIface(NULL),
     dsClientHandle(NULL),
+    dsLibraryHandle(NULL),
     mGnssMeasurementSupported(sup_unknown),
     mQmiMask(0), mInSession(false), mEngineOn(false)
 {
@@ -1339,6 +1340,41 @@ enum loc_api_adapter_err LocApiV02 :: setSUPLVersion(uint32_t version)
   return convertErr(result);
 }
 
+/* set the NMEA types mask */
+enum loc_api_adapter_err LocApiV02 :: setNMEATypes (uint32_t typesMask)
+{
+  locClientStatusEnumType result = eLOC_CLIENT_SUCCESS;
+  locClientReqUnionType req_union;
+
+  qmiLocSetNmeaTypesReqMsgT_v02 setNmeaTypesReqMsg;
+  qmiLocSetNmeaTypesIndMsgT_v02 setNmeaTypesIndMsg;
+
+  LOC_LOGD(" %s:%d]: setNMEATypes, mask = %u\n", __func__, __LINE__,typesMask);
+
+  memset(&setNmeaTypesReqMsg, 0, sizeof(setNmeaTypesReqMsg));
+  memset(&setNmeaTypesIndMsg, 0, sizeof(setNmeaTypesIndMsg));
+
+  setNmeaTypesReqMsg.nmeaSentenceType = typesMask;
+
+  req_union.pSetNmeaTypesReq = &setNmeaTypesReqMsg;
+
+  result = loc_sync_send_req( clientHandle,
+          QMI_LOC_SET_NMEA_TYPES_REQ_V02, req_union,
+          LOC_ENGINE_SYNC_REQUEST_TIMEOUT,
+          QMI_LOC_SET_NMEA_TYPES_IND_V02, &setNmeaTypesIndMsg);
+
+  // if success
+  if ( result != eLOC_CLIENT_SUCCESS )
+  {
+    LOC_LOGE ("%s:%d]: Error status = %s, ind..status = %s ",
+                  __func__, __LINE__,
+                  loc_get_v02_client_status_name(result),
+                  loc_get_v02_qmi_status_name(setNmeaTypesIndMsg.status));
+  }
+
+  return convertErr(result);
+}
+
 /* set the configuration for LTE positioning profile (LPP) */
 enum loc_api_adapter_err LocApiV02 :: setLPPConfig(uint32_t profile)
 {
@@ -1680,16 +1716,16 @@ locClientEventMaskType LocApiV02 :: convertMask(
   if (mask & LOC_API_ADAPTER_BIT_LOCATION_SERVER_REQUEST)
       eventMask |= QMI_LOC_EVENT_MASK_LOCATION_SERVER_CONNECTION_REQ_V02;
 
-  if (mask & LOC_API_ADAPTER_REQUEST_WIFI)
+  if (mask & LOC_API_ADAPTER_BIT_REQUEST_WIFI)
       eventMask |= QMI_LOC_EVENT_MASK_WIFI_REQ_V02;
 
-  if (mask & LOC_API_ADAPTER_SENSOR_STATUS)
+  if (mask & LOC_API_ADAPTER_BIT_SENSOR_STATUS)
       eventMask |= QMI_LOC_EVENT_MASK_SENSOR_STREAMING_READY_STATUS_V02;
 
-  if (mask & LOC_API_ADAPTER_REQUEST_TIME_SYNC)
+  if (mask & LOC_API_ADAPTER_BIT_REQUEST_TIME_SYNC)
       eventMask |= QMI_LOC_EVENT_MASK_TIME_SYNC_REQ_V02;
 
-  if (mask & LOC_API_ADAPTER_REPORT_SPI)
+  if (mask & LOC_API_ADAPTER_BIT_REPORT_SPI)
       eventMask |= QMI_LOC_EVENT_MASK_SET_SPI_STREAMING_REPORT_V02;
 
   if (mask & LOC_API_ADAPTER_BIT_REPORT_NI_GEOFENCE)
@@ -1707,13 +1743,13 @@ locClientEventMaskType LocApiV02 :: convertMask(
   if (mask & LOC_API_ADAPTER_BIT_REPORT_GENFENCE_DWELL)
       eventMask |= QMI_LOC_EVENT_MASK_GEOFENCE_BATCH_DWELL_NOTIFICATION_V02;
 
-  if (mask & LOC_API_ADAPTER_PEDOMETER_CTRL)
+  if (mask & LOC_API_ADAPTER_BIT_PEDOMETER_CTRL)
       eventMask |= QMI_LOC_EVENT_MASK_PEDOMETER_CONTROL_V02;
 
-  if (mask & LOC_API_ADAPTER_MOTION_CTRL)
+  if (mask & LOC_API_ADAPTER_BIT_MOTION_CTRL)
       eventMask |= QMI_LOC_EVENT_MASK_MOTION_DATA_CONTROL_V02;
 
-  if (mask & LOC_API_ADAPTER_REQUEST_WIFI_AP_DATA)
+  if (mask & LOC_API_ADAPTER_BIT_REQUEST_WIFI_AP_DATA)
       eventMask |= QMI_LOC_EVENT_MASK_INJECT_WIFI_AP_DATA_REQ_V02;
 
   if(mask & LOC_API_ADAPTER_BIT_BATCH_FULL)
@@ -2904,6 +2940,16 @@ int LocApiV02 :: initDataServiceClient()
     }
     else
     {
+      if (NULL == dsClientIface)
+      {
+          LOC_LOGE("%s:%d]: dsClientIface == NULL",
+                   __func__, __LINE__);
+      }
+      else
+      {
+          LOC_LOGE("%s:%d]: dsClientIface->pfn_init == NULL",
+                   __func__, __LINE__);
+      }
       ret = 2;
     }
     LOC_LOGD("%s:%d]: ret = %d\n", __func__, __LINE__,ret);
