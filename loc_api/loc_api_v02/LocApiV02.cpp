@@ -2061,6 +2061,7 @@ void  LocApiV02 :: reportSv (
   GnssSvStatus      SvStatus;
   GpsLocationExtended locationExtended;
   int              num_svs_max, i;
+  bool bIsValidEphOrAlmanac = false;
   const qmiLocSvInfoStructT_v02 *sv_info_ptr;
 
   LOC_LOGV ("%s:%d]: num of sv = %d, validity = %d, altitude assumed = %u \n",
@@ -2082,6 +2083,7 @@ void  LocApiV02 :: reportSv (
     SvStatus.num_svs = 0;
     for(i = 0; i < num_svs_max; i++)
     {
+      bIsValidEphOrAlmanac = false;
       sv_info_ptr = &(gnss_report_ptr->svList[i]);
       if((sv_info_ptr->validMask & QMI_LOC_SV_INFO_MASK_VALID_SYSTEM_V02) &&
          (sv_info_ptr->validMask & QMI_LOC_SV_INFO_MASK_VALID_GNSS_SVID_V02)
@@ -2099,11 +2101,13 @@ void  LocApiV02 :: reportSv (
             if(sv_info_ptr->svInfoMask &
                QMI_LOC_SVINFO_MASK_HAS_EPHEMERIS_V02)
             {
+              bIsValidEphOrAlmanac = true;
               SvStatus.ephemeris_mask |= (1 << (sv_info_ptr->gnssSvId-1));
             }
             if(sv_info_ptr->svInfoMask &
                QMI_LOC_SVINFO_MASK_HAS_ALMANAC_V02)
             {
+              bIsValidEphOrAlmanac = true;
               SvStatus.almanac_mask |= (1 << (sv_info_ptr->gnssSvId-1));
             }
           }
@@ -2111,7 +2115,11 @@ void  LocApiV02 :: reportSv (
           if((sv_info_ptr->validMask &
               QMI_LOC_SV_INFO_MASK_VALID_PROCESS_STATUS_V02)
              &&
-             (sv_info_ptr->svStatus == eQMI_LOC_SV_STATUS_TRACK_V02))
+             (sv_info_ptr->svStatus == eQMI_LOC_SV_STATUS_TRACK_V02)
+             &&
+             (bIsValidEphOrAlmanac == true)
+             &&
+             (sv_info_ptr->snr > 0))
           {
             SvStatus.gps_used_in_fix_mask |= (1 << (sv_info_ptr->gnssSvId-1));
           }
@@ -2129,46 +2137,114 @@ void  LocApiV02 :: reportSv (
         // which is 65-96
         else if(sv_info_ptr->system == eQMI_LOC_SV_SYSTEM_GLONASS_V02)
         {
+          uint32_t glo_prn = sv_info_ptr->gnssSvId +(65-1);
+          uint32_t glo_prn_masking = sv_info_ptr->gnssSvId-1;
+
+          if(sv_info_ptr->validMask &
+             QMI_LOC_SV_INFO_MASK_VALID_SVINFO_MASK_V02)
+          {
+            if(sv_info_ptr->svInfoMask &
+               QMI_LOC_SVINFO_MASK_HAS_EPHEMERIS_V02)
+            {
+              bIsValidEphOrAlmanac = true;
+              SvStatus.glo_ephemeris_mask |= (1 << glo_prn_masking);
+            }
+            if(sv_info_ptr->svInfoMask &
+               QMI_LOC_SVINFO_MASK_HAS_ALMANAC_V02)
+            {
+              bIsValidEphOrAlmanac = true;
+              SvStatus.glo_almanac_mask |= (1 << glo_prn_masking);
+            }
+          }
+
           if((sv_info_ptr->validMask &
               QMI_LOC_SV_INFO_MASK_VALID_PROCESS_STATUS_V02)
              &&
-             (sv_info_ptr->svStatus == eQMI_LOC_SV_STATUS_TRACK_V02))
+             (sv_info_ptr->svStatus == eQMI_LOC_SV_STATUS_TRACK_V02)
+             &&
+             (bIsValidEphOrAlmanac == true)
+             &&
+             (sv_info_ptr->snr > 0))
           {
-            SvStatus.glo_used_in_fix_mask |= (1 << (sv_info_ptr->gnssSvId-1));
+            SvStatus.glo_used_in_fix_mask |= (1 << glo_prn_masking);
           }
 
-          SvStatus.sv_list[SvStatus.num_svs].prn =
-            sv_info_ptr->gnssSvId + (65-1);
+          SvStatus.sv_list[SvStatus.num_svs].prn = glo_prn;
         }
         //BeiDou: Slot id: 1-37
         //In extended measurement report, we follow nmea standard,
         //which is 201-237
         else if(sv_info_ptr->system == eQMI_LOC_SV_SYSTEM_BDS_V02)
         {
+          uint32_t bds_prn = sv_info_ptr->gnssSvId;
+          uint32_t bds_prn_masking = sv_info_ptr->gnssSvId-1-200;
+
+          if(sv_info_ptr->validMask &
+             QMI_LOC_SV_INFO_MASK_VALID_SVINFO_MASK_V02)
+          {
+            if(sv_info_ptr->svInfoMask &
+               QMI_LOC_SVINFO_MASK_HAS_EPHEMERIS_V02)
+            {
+              bIsValidEphOrAlmanac = true;
+              SvStatus.bds_ephemeris_mask |= (1 << bds_prn_masking);
+            }
+            if(sv_info_ptr->svInfoMask &
+               QMI_LOC_SVINFO_MASK_HAS_ALMANAC_V02)
+            {
+              bIsValidEphOrAlmanac = true;
+              SvStatus.bds_almanac_mask |= (1 << bds_prn_masking);
+            }
+          }
+
           if((sv_info_ptr->validMask &
               QMI_LOC_SV_INFO_MASK_VALID_PROCESS_STATUS_V02)
              &&
-             (sv_info_ptr->svStatus == eQMI_LOC_SV_STATUS_TRACK_V02))
+             (sv_info_ptr->svStatus == eQMI_LOC_SV_STATUS_TRACK_V02)
+             &&
+             (bIsValidEphOrAlmanac == true)
+             &&
+             (sv_info_ptr->snr > 0))
           {
-            SvStatus.bds_used_in_fix_mask |= (1 << (sv_info_ptr->gnssSvId-1-200));
+            SvStatus.bds_used_in_fix_mask |= (1 << bds_prn_masking);
           }
-            SvStatus.sv_list[SvStatus.num_svs].prn =
-                sv_info_ptr->gnssSvId;
+          SvStatus.sv_list[SvStatus.num_svs].prn = bds_prn;
         }
         //In extended measurement report, we follow nmea standard,
         //which is 301-336
         else if(sv_info_ptr->system == eQMI_LOC_SV_SYSTEM_GALILEO_V02)
         {
+          uint32_t gal_prn = sv_info_ptr->gnssSvId;
+          uint32_t gal_prn_masking = sv_info_ptr->gnssSvId-1-300;
 
-            if((sv_info_ptr->validMask &
+          if(sv_info_ptr->validMask &
+             QMI_LOC_SV_INFO_MASK_VALID_SVINFO_MASK_V02)
+          {
+            if(sv_info_ptr->svInfoMask &
+               QMI_LOC_SVINFO_MASK_HAS_EPHEMERIS_V02)
+            {
+              bIsValidEphOrAlmanac = true;
+              SvStatus.gal_ephemeris_mask |= (1 << gal_prn_masking);
+            }
+            if(sv_info_ptr->svInfoMask &
+               QMI_LOC_SVINFO_MASK_HAS_ALMANAC_V02)
+            {
+              bIsValidEphOrAlmanac = true;
+              SvStatus.gal_almanac_mask |= (1 << gal_prn_masking);
+            }
+          }
+
+          if((sv_info_ptr->validMask &
               QMI_LOC_SV_INFO_MASK_VALID_PROCESS_STATUS_V02)
              &&
-             (sv_info_ptr->svStatus == eQMI_LOC_SV_STATUS_TRACK_V02))
+             (sv_info_ptr->svStatus == eQMI_LOC_SV_STATUS_TRACK_V02)
+             &&
+             (bIsValidEphOrAlmanac == true)
+             &&
+             (sv_info_ptr->snr > 0))
           {
-            SvStatus.gal_used_in_fix_mask |= (1 << (sv_info_ptr->gnssSvId-1-300));
+            SvStatus.gal_used_in_fix_mask |= (1 << gal_prn_masking);
           }
-            SvStatus.sv_list[SvStatus.num_svs].prn =
-                sv_info_ptr->gnssSvId;
+          SvStatus.sv_list[SvStatus.num_svs].prn = gal_prn;
         }
         // Unsupported SV system
         else
