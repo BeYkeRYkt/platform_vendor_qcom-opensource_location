@@ -3466,38 +3466,49 @@ void LocApiV02 :: convertGnssMeasurements (LocGnssMeasurement& gnssMeasurement,
     // flag initiation
     LocGnssMeasurementFlags flags = 0;
 
-    // svid
-    gnssMeasurement.svid = gnss_measurement_info.gnssSvId;
-
-    // constellation
+    // constellation and svid
     switch (system)
     {
         case eQMI_LOC_SV_SYSTEM_GPS_V02:
             gnssMeasurement.constellation = LOC_GNSS_CONSTELLATION_GPS;
+            gnssMeasurement.svid = gnss_measurement_info.gnssSvId;
             break;
 
         case eQMI_LOC_SV_SYSTEM_GALILEO_V02:
             gnssMeasurement.constellation = LOC_GNSS_CONSTELLATION_GALILEO;
+            gnssMeasurement.svid = gnss_measurement_info.gnssSvId + 1 - GAL_SV_PRN_MIN;
             break;
 
         case eQMI_LOC_SV_SYSTEM_SBAS_V02:
             gnssMeasurement.constellation = LOC_GNSS_CONSTELLATION_SBAS;
+            gnssMeasurement.svid = gnss_measurement_info.gnssSvId;
             break;
 
         case eQMI_LOC_SV_SYSTEM_GLONASS_V02:
             gnssMeasurement.constellation = LOC_GNSS_CONSTELLATION_GLONASS;
+            if (gnss_measurement_info.gnssSvId != 255) // OSN is known
+            {
+                gnssMeasurement.svid = gnss_measurement_info.gnssSvId + 1 - GLO_SV_PRN_MIN;
+            }
+            else // OSN is not known, report FCN
+            {
+                gnssMeasurement.svid = gnss_measurement_info.gloFrequency + 92;
+            }
             break;
 
         case eQMI_LOC_SV_SYSTEM_BDS_V02:
             gnssMeasurement.constellation = LOC_GNSS_CONSTELLATION_BEIDOU;
+            gnssMeasurement.svid = gnss_measurement_info.gnssSvId + 1 - BDS_SV_PRN_MIN;
             break;
 
         case eQMI_LOC_SV_SYSTEM_QZSS_V02:
             gnssMeasurement.constellation = LOC_GNSS_CONSTELLATION_QZSS;
+            gnssMeasurement.svid = gnss_measurement_info.gnssSvId;
             break;
 
         default:
             gnssMeasurement.constellation = LOC_GNSS_CONSTELLATION_UNKNOWN;
+            gnssMeasurement.svid = gnss_measurement_info.gnssSvId;
             break;
     }
 
