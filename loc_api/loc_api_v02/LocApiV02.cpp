@@ -3389,6 +3389,7 @@ void LocApiV02 :: reportGnssMeasurementData(
 
     int svMeasurement_len = 0;
     static int meas_index = 0;
+    static bool bGPSreceived = false;
 
     LOC_LOGD("%s:%d]: SeqNum: %d, MaxMsgNum: %d",
         __func__, __LINE__,
@@ -3404,6 +3405,7 @@ void LocApiV02 :: reportGnssMeasurementData(
     if (1 == gnss_measurement_report_ptr.seqNum)
     {
         meas_index = 0;
+        bGPSreceived = false;
         memset(&gnssMeasurementData, 0, sizeof(LocGnssData));
         gnssMeasurementData.size = sizeof(LocGnssData);
     }
@@ -3441,13 +3443,15 @@ void LocApiV02 :: reportGnssMeasurementData(
             __func__, __LINE__);
     }
     // the GPS clock time reading
+    if (eQMI_LOC_SV_SYSTEM_GPS_V02 == gnss_measurement_report_ptr.system) {
+        bGPSreceived = true;
+        convertGnssClock(gnssMeasurementData.clock,
+            gnss_measurement_report_ptr);
+    }
     if (gnss_measurement_report_ptr.maxMessageNum ==
          gnss_measurement_report_ptr.seqNum &&
-         meas_index > 0) {
-
-         convertGnssClock(gnssMeasurementData.clock,
-                gnss_measurement_report_ptr);
-
+         meas_index > 0 &&
+         true == bGPSreceived) {
          // calling the base
          LocApiBase::reportGnssMeasurementData(gnssMeasurementData);
     }
