@@ -91,8 +91,6 @@ const struct conf_scaler_to_68_pair confScalers[CONF_SCALER_ARRAY_MAX] = {
     {63, 1.072}, // 51 - 63. Index 2
 };
 
-#define GPS_CONF_FILE "/etc/gps.conf"
-
 /*fixed timestamp uncertainty 10 milli second */
 static int ap_timestamp_uncertainty = 0;
 static loc_param_s_type gps_conf_param_table[] =
@@ -223,7 +221,7 @@ LocApiV02 :: LocApiV02(const MsgTask* msgTask,
   // initialize loc_sync_req interface
   loc_sync_req_init();
 
-  UTIL_READ_CONF(GPS_CONF_FILE,gps_conf_param_table);
+  UTIL_READ_CONF(LOC_PATH_GPS_CONF,gps_conf_param_table);
 }
 
 /* Destructor for LocApiV02 */
@@ -2201,6 +2199,7 @@ void LocApiV02 :: reportPosition (
 
             // Technology Mask
             tech_Mask |= location_report_ptr->technologyMask;
+            locationExtended.tech_mask = convertPosTechMask(location_report_ptr->technologyMask);
 
             //Mark the location source as from GNSS
             location.gpsLocation.flags |= LOCATION_HAS_SOURCE_INFO;
@@ -2341,6 +2340,12 @@ void LocApiV02 :: reportPosition (
                                                     (1 << (gnssSvIdUsed - GAL_SV_PRN_MIN));
                     }
                 }
+            }
+
+            if (location_report_ptr->navSolutionMask_valid)
+            {
+               locationExtended.flags |= GPS_LOCATION_EXTENDED_HAS_NAV_SOLUTION_MASK;
+               locationExtended.navSolutionMask = convertNavSolutionMask(location_report_ptr->navSolutionMask);
             }
 
             if((0 == location_report_ptr->latitude) &&
@@ -3384,18 +3389,26 @@ void LocApiV02 :: reportGnssMeasurementData(
 
     int svMeasurement_len = 0;
     static int meas_index = 0;
-
-    if (1 == gnss_measurement_report_ptr.seqNum)
-    {
-        meas_index = 0;
-        memset(&gnssMeasurementData, 0, sizeof(LocGnssData));
-        gnssMeasurementData.size = sizeof(LocGnssData);
-    }
+    static bool bGPSreceived = false;
 
     LOC_LOGD("%s:%d]: SeqNum: %d, MaxMsgNum: %d",
         __func__, __LINE__,
         gnss_measurement_report_ptr.seqNum,
         gnss_measurement_report_ptr.maxMessageNum);
+
+    if (gnss_measurement_report_ptr.seqNum > gnss_measurement_report_ptr.maxMessageNum) {
+        LOC_LOGE("%s:%d]: Invalid seqNum, do not proceed",
+            __func__, __LINE__);
+        return;
+    }
+
+    if (1 == gnss_measurement_report_ptr.seqNum)
+    {
+        meas_index = 0;
+        bGPSreceived = false;
+        memset(&gnssMeasurementData, 0, sizeof(LocGnssData));
+        gnssMeasurementData.size = sizeof(LocGnssData);
+    }
 
     // number of measurements
     if (gnss_measurement_report_ptr.svMeasurement_valid) {
@@ -3430,13 +3443,15 @@ void LocApiV02 :: reportGnssMeasurementData(
             __func__, __LINE__);
     }
     // the GPS clock time reading
+    if (eQMI_LOC_SV_SYSTEM_GPS_V02 == gnss_measurement_report_ptr.system) {
+        bGPSreceived = true;
+        convertGnssClock(gnssMeasurementData.clock,
+            gnss_measurement_report_ptr);
+    }
     if (gnss_measurement_report_ptr.maxMessageNum ==
          gnss_measurement_report_ptr.seqNum &&
-         meas_index > 0) {
-
-         convertGnssClock(gnssMeasurementData.clock,
-                gnss_measurement_report_ptr);
-
+         meas_index > 0 &&
+         true == bGPSreceived) {
          // calling the base
          LocApiBase::reportGnssMeasurementData(gnssMeasurementData);
     }
@@ -3455,38 +3470,49 @@ void LocApiV02 :: convertGnssMeasurements (LocGnssMeasurement& gnssMeasurement,
     // flag initiation
     LocGnssMeasurementFlags flags = 0;
 
-    // svid
-    gnssMeasurement.svid = gnss_measurement_info.gnssSvId;
-
-    // constellation
+    // constellation and svid
     switch (system)
     {
         case eQMI_LOC_SV_SYSTEM_GPS_V02:
             gnssMeasurement.constellation = LOC_GNSS_CONSTELLATION_GPS;
+            gnssMeasurement.svid = gnss_measurement_info.gnssSvId;
             break;
 
         case eQMI_LOC_SV_SYSTEM_GALILEO_V02:
             gnssMeasurement.constellation = LOC_GNSS_CONSTELLATION_GALILEO;
+            gnssMeasurement.svid = gnss_measurement_info.gnssSvId + 1 - GAL_SV_PRN_MIN;
             break;
 
         case eQMI_LOC_SV_SYSTEM_SBAS_V02:
             gnssMeasurement.constellation = LOC_GNSS_CONSTELLATION_SBAS;
+            gnssMeasurement.svid = gnss_measurement_info.gnssSvId;
             break;
 
         case eQMI_LOC_SV_SYSTEM_GLONASS_V02:
             gnssMeasurement.constellation = LOC_GNSS_CONSTELLATION_GLONASS;
+            if (gnss_measurement_info.gnssSvId != 255) // OSN is known
+            {
+                gnssMeasurement.svid = gnss_measurement_info.gnssSvId + 1 - GLO_SV_PRN_MIN;
+            }
+            else // OSN is not known, report FCN
+            {
+                gnssMeasurement.svid = gnss_measurement_info.gloFrequency + 92;
+            }
             break;
 
         case eQMI_LOC_SV_SYSTEM_BDS_V02:
             gnssMeasurement.constellation = LOC_GNSS_CONSTELLATION_BEIDOU;
+            gnssMeasurement.svid = gnss_measurement_info.gnssSvId + 1 - BDS_SV_PRN_MIN;
             break;
 
         case eQMI_LOC_SV_SYSTEM_QZSS_V02:
             gnssMeasurement.constellation = LOC_GNSS_CONSTELLATION_QZSS;
+            gnssMeasurement.svid = gnss_measurement_info.gnssSvId;
             break;
 
         default:
             gnssMeasurement.constellation = LOC_GNSS_CONSTELLATION_UNKNOWN;
+            gnssMeasurement.svid = gnss_measurement_info.gnssSvId;
             break;
     }
 
@@ -4554,4 +4580,59 @@ handleWwanZppFixIndication(const qmiLocGetAvailWwanPositionIndMsgT_v02& zpp_ind)
     }
 
     LocApiBase::reportWwanZppFix(zppLoc);
+}
+
+LocPosTechMask LocApiV02 :: convertPosTechMask(
+  qmiLocPosTechMaskT_v02 mask)
+{
+   LocPosTechMask locTechMask = LOC_POS_TECH_MASK_DEFAULT;
+
+   if (mask & QMI_LOC_POS_TECH_MASK_SATELLITE_V02)
+      locTechMask |= LOC_POS_TECH_MASK_SATELLITE;
+
+   if (mask & QMI_LOC_POS_TECH_MASK_CELLID_V02)
+      locTechMask |= LOC_POS_TECH_MASK_CELLID;
+
+   if (mask & QMI_LOC_POS_TECH_MASK_WIFI_V02)
+      locTechMask |= LOC_POS_TECH_MASK_WIFI;
+
+   if (mask & QMI_LOC_POS_TECH_MASK_SENSORS_V02)
+      locTechMask |= LOC_POS_TECH_MASK_SENSORS;
+
+   if (mask & QMI_LOC_POS_TECH_MASK_REFERENCE_LOCATION_V02)
+      locTechMask |= LOC_POS_TECH_MASK_REFERENCE_LOCATION;
+
+   if (mask & QMI_LOC_POS_TECH_MASK_INJECTED_COARSE_POSITION_V02)
+      locTechMask |= LOC_POS_TECH_MASK_INJECTED_COARSE_POSITION;
+
+   if (mask & QMI_LOC_POS_TECH_MASK_AFLT_V02)
+      locTechMask |= LOC_POS_TECH_MASK_AFLT;
+
+   if (mask & QMI_LOC_POS_TECH_MASK_HYBRID_V02)
+      locTechMask |= LOC_POS_TECH_MASK_HYBRID;
+
+   return locTechMask;
+}
+
+LocNavSolutionMask LocApiV02 :: convertNavSolutionMask(
+  qmiLocNavSolutionMaskT_v02 mask)
+{
+   LocNavSolutionMask locNavMask = 0;
+
+   if (mask & QMI_LOC_NAV_MASK_SBAS_CORRECTION_IONO_V02)
+      locNavMask |= LOC_NAV_MASK_SBAS_CORRECTION_IONO;
+
+   if (mask & QMI_LOC_NAV_MASK_SBAS_CORRECTION_FAST_V02)
+      locNavMask |= LOC_NAV_MASK_SBAS_CORRECTION_FAST;
+
+   if (mask & QMI_LOC_POS_TECH_MASK_WIFI_V02)
+      locNavMask |= LOC_POS_TECH_MASK_WIFI;
+
+   if (mask & QMI_LOC_NAV_MASK_SBAS_CORRECTION_LONG_V02)
+      locNavMask |= LOC_NAV_MASK_SBAS_CORRECTION_LONG;
+
+   if (mask & QMI_LOC_NAV_MASK_SBAS_INTEGRITY_V02)
+      locNavMask |= LOC_NAV_MASK_SBAS_INTEGRITY;
+
+   return locNavMask;
 }
