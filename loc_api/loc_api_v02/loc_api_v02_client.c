@@ -276,7 +276,12 @@ static const locClientEventIndTableStructT locClientEventIndTable[]= {
 
   { QMI_LOC_EVENT_GDT_DOWNLOAD_END_REQ_IND_V02,
     sizeof(qmiLocEventGdtDownloadEndReqIndMsgT_v02),
-    0}
+    0},
+
+  // SRN Ap data inject request
+  { QMI_LOC_EVENT_INJECT_SRN_AP_DATA_REQ_IND_V02,
+    sizeof(qmiLocEventInjectSrnApDataReqIndMsgT_v02),
+    QMI_LOC_EVENT_MASK_INJECT_SRN_AP_DATA_REQ_V02}
 };
 
 /* table to relate the respInd Id with its size */
@@ -635,7 +640,11 @@ static const locClientRespIndTableStructT locClientRespIndTable[]= {
      sizeof(qmiLocInjectXtraDataIndMsgT_v02) },
 
    { QMI_LOC_INJECT_XTRA_PCID_IND_V02,
-     sizeof(qmiLocInjectXtraPcidIndMsgT_v02) }
+     sizeof(qmiLocInjectXtraPcidIndMsgT_v02) },
+
+   // SRN Ap data inject
+   { QMI_LOC_INJECT_SRN_AP_DATA_IND_V02,
+     sizeof(qmiLocInjectSrnApDataIndMsgT_v02) }
 };
 
 
@@ -1558,6 +1567,13 @@ static bool validateRequest(
         break;
     }
 
+    // SRN AP data injection
+    case QMI_LOC_INJECT_SRN_AP_DATA_REQ_V02:
+    {
+        *pOutLen = sizeof(qmiLocInjectSrnApDataReqMsgT_v02);
+        break;
+    }
+
     // ALL requests with no payload
     case QMI_LOC_GET_SERVICE_REVISION_REQ_V02:
     case QMI_LOC_GET_FIX_CRITERIA_REQ_V02:
@@ -2067,6 +2083,7 @@ locClientStatusEnumType locClientSendReq(
   // back from the modem, to avoid confusing log order. We trust
   // that the QMI framework is robust.
   EXIT_LOG_CALLFLOW(%s, loc_get_v02_event_name(reqId));
+  memset(&resp, 0, sizeof(resp));
   rc = qmi_client_send_msg_sync(
       pCallbackData->userHandle,
       reqId,
