@@ -2041,6 +2041,10 @@ locClientEventMaskType LocApiV02 :: convertMask(
 
   if(mask & LOC_API_ADAPTER_BIT_REQUEST_TIMEZONE)
       eventMask |= QMI_LOC_EVENT_MASK_GET_TIME_ZONE_REQ_V02;
+
+  if(mask & LOC_API_ADAPTER_BIT_REQUEST_SRN_DATA)
+      eventMask |= QMI_LOC_EVENT_MASK_INJECT_SRN_AP_DATA_REQ_V02 ;
+
   return eventMask;
 }
 
@@ -3389,6 +3393,7 @@ void LocApiV02 :: reportGnssMeasurementData(
 
     int svMeasurement_len = 0;
     static int meas_index = 0;
+    static bool bGPSreceived = false;
 
     LOC_LOGD("%s:%d]: SeqNum: %d, MaxMsgNum: %d",
         __func__, __LINE__,
@@ -3404,6 +3409,7 @@ void LocApiV02 :: reportGnssMeasurementData(
     if (1 == gnss_measurement_report_ptr.seqNum)
     {
         meas_index = 0;
+        bGPSreceived = false;
         memset(&gnssMeasurementData, 0, sizeof(LocGnssData));
         gnssMeasurementData.size = sizeof(LocGnssData);
     }
@@ -3431,8 +3437,8 @@ void LocApiV02 :: reportGnssMeasurementData(
             LOC_LOGV("%s:%d]: index=%d meas_index=%d",
                 __func__, __LINE__, index, meas_index);
             convertGnssMeasurements(gnssMeasurementData.measurements[meas_index],
-                gnss_measurement_report_ptr.svMeasurement[index],
-                gnss_measurement_report_ptr.system);
+                gnss_measurement_report_ptr,
+                index);
             meas_index++;
         }
     }
@@ -3441,24 +3447,36 @@ void LocApiV02 :: reportGnssMeasurementData(
             __func__, __LINE__);
     }
     // the GPS clock time reading
+    if (eQMI_LOC_SV_SYSTEM_GPS_V02 == gnss_measurement_report_ptr.system) {
+        bGPSreceived = true;
+        convertGnssClock(gnssMeasurementData.clock,
+            gnss_measurement_report_ptr);
+    }
     if (gnss_measurement_report_ptr.maxMessageNum ==
          gnss_measurement_report_ptr.seqNum &&
-         meas_index > 0) {
-
-         convertGnssClock(gnssMeasurementData.clock,
-                gnss_measurement_report_ptr);
-
+         meas_index > 0 &&
+         true == bGPSreceived) {
          // calling the base
          LocApiBase::reportGnssMeasurementData(gnssMeasurementData);
     }
 }
 
+#define FIRST_BDS_D2_SV_PRN 1
+#define LAST_BDS_D2_SV_PRN  5
+#define IS_BDS_GEO_SV(svId, gnssType) ( ((gnssType == LOC_GNSS_CONSTELLATION_BEIDOU) && \
+                                        (svId <= LAST_BDS_D2_SV_PRN) && \
+                                        (svId >= FIRST_BDS_D2_SV_PRN)) ? true : false )
+
 /*convert GnssMeasurement type from QMI LOC to loc eng format*/
 void LocApiV02 :: convertGnssMeasurements (LocGnssMeasurement& gnssMeasurement,
-    const qmiLocSVMeasurementStructT_v02& gnss_measurement_info,
-    const qmiLocSvSystemEnumT_v02 system)
+    const qmiLocEventGnssSvMeasInfoIndMsgT_v02& gnss_measurement_report_ptr,
+    int index)
 {
     LOC_LOGV ("%s:%d]: entering\n", __func__, __LINE__);
+
+    qmiLocSVMeasurementStructT_v02 gnss_measurement_info;
+
+    gnss_measurement_info = gnss_measurement_report_ptr.svMeasurement[index];
 
     // size
     gnssMeasurement.size = sizeof(LocGnssMeasurement);
@@ -3466,38 +3484,49 @@ void LocApiV02 :: convertGnssMeasurements (LocGnssMeasurement& gnssMeasurement,
     // flag initiation
     LocGnssMeasurementFlags flags = 0;
 
-    // svid
-    gnssMeasurement.svid = gnss_measurement_info.gnssSvId;
-
-    // constellation
-    switch (system)
+    // constellation and svid
+    switch (gnss_measurement_report_ptr.system)
     {
         case eQMI_LOC_SV_SYSTEM_GPS_V02:
             gnssMeasurement.constellation = LOC_GNSS_CONSTELLATION_GPS;
+            gnssMeasurement.svid = gnss_measurement_info.gnssSvId;
             break;
 
         case eQMI_LOC_SV_SYSTEM_GALILEO_V02:
             gnssMeasurement.constellation = LOC_GNSS_CONSTELLATION_GALILEO;
+            gnssMeasurement.svid = gnss_measurement_info.gnssSvId + 1 - GAL_SV_PRN_MIN;
             break;
 
         case eQMI_LOC_SV_SYSTEM_SBAS_V02:
             gnssMeasurement.constellation = LOC_GNSS_CONSTELLATION_SBAS;
+            gnssMeasurement.svid = gnss_measurement_info.gnssSvId;
             break;
 
         case eQMI_LOC_SV_SYSTEM_GLONASS_V02:
             gnssMeasurement.constellation = LOC_GNSS_CONSTELLATION_GLONASS;
+            if (gnss_measurement_info.gnssSvId != 255) // OSN is known
+            {
+                gnssMeasurement.svid = gnss_measurement_info.gnssSvId + 1 - GLO_SV_PRN_MIN;
+            }
+            else // OSN is not known, report FCN
+            {
+                gnssMeasurement.svid = gnss_measurement_info.gloFrequency + 92;
+            }
             break;
 
         case eQMI_LOC_SV_SYSTEM_BDS_V02:
             gnssMeasurement.constellation = LOC_GNSS_CONSTELLATION_BEIDOU;
+            gnssMeasurement.svid = gnss_measurement_info.gnssSvId + 1 - BDS_SV_PRN_MIN;
             break;
 
         case eQMI_LOC_SV_SYSTEM_QZSS_V02:
             gnssMeasurement.constellation = LOC_GNSS_CONSTELLATION_QZSS;
+            gnssMeasurement.svid = gnss_measurement_info.gnssSvId;
             break;
 
         default:
             gnssMeasurement.constellation = LOC_GNSS_CONSTELLATION_UNKNOWN;
+            gnssMeasurement.svid = gnss_measurement_info.gnssSvId;
             break;
     }
 
@@ -3514,6 +3543,33 @@ void LocApiV02 :: convertGnssMeasurements (LocGnssMeasurement& gnssMeasurement,
     uint64_t bitSynMask = QMI_LOC_MASK_MEAS_STATUS_BE_CONFIRM_V02 |
                           QMI_LOC_MASK_MEAS_STATUS_SB_VALID_V02;
     double gpsTowUncNs = (double)gnss_measurement_info.svTimeSpeed.svTimeUncMs * 1e6;
+    bool isGloTimeValid = false;
+
+    if ((LOC_GNSS_CONSTELLATION_GLONASS == gnssMeasurement.constellation) &&
+        (gnss_measurement_report_ptr.gloTime_valid) &&
+        (gnss_measurement_report_ptr.gloTime.gloFourYear != 255) && /* 255 is unknown */
+        (gnss_measurement_report_ptr.gloTime.gloDays != 65535)) { /* 65535 is unknown */
+        isGloTimeValid = true;
+    }
+
+    uint64_t galSVstateMask = 0;
+
+    if (LOC_GNSS_CONSTELLATION_GALILEO == gnssMeasurement.constellation) {
+        galSVstateMask = LOC_GNSS_MEASUREMENT_STATE_GAL_E1BC_CODE_LOCK;
+
+        if (gnss_measurement_info.measurementStatus & (1 << 30)) {
+            /* 1<<30 corresponds to MEAS_STATUS_100MS_VALID
+               which is not documented in location_service_v02.h
+               yet, temporary workaround */
+            galSVstateMask |= LOC_GNSS_MEASUREMENT_STATE_GAL_E1C_2ND_CODE_LOCK;
+        }
+        if (gnss_measurement_info.measurementStatus & (1 << 31)) {
+            /* 1<<31 corresponds to MEAS_STATUS_2S_VALID
+            which is not documented in location_service_v02.h
+            yet, temporary workaround */
+            galSVstateMask |= LOC_GNSS_MEASUREMENT_STATE_GAL_E1B_PAGE_SYNC;
+        }
+    }
 
     if (validMask & QMI_LOC_MASK_MEAS_STATUS_MS_VALID_V02) {
         /* sub-frame decode & TOW decode */
@@ -3521,6 +3577,17 @@ void LocApiV02 :: convertGnssMeasurements (LocGnssMeasurement& gnssMeasurement,
                                 LOC_GNSS_MEASUREMENT_STATE_TOW_DECODED |
                                 LOC_GNSS_MEASUREMENT_STATE_BIT_SYNC |
                                 LOC_GNSS_MEASUREMENT_STATE_CODE_LOCK;
+        if (true == isGloTimeValid) {
+            gnssMeasurement.state |= (LOC_GNSS_MEASUREMENT_STATE_GLO_STRING_SYNC |
+                LOC_GNSS_MEASUREMENT_STATE_GLO_TOD_DECODED);
+        }
+        gnssMeasurement.state |= galSVstateMask;
+
+        if (IS_BDS_GEO_SV(gnssMeasurement.svid, gnssMeasurement.constellation)) {
+            /* BDS_GEO SV transmitting D2 signal */
+            gnssMeasurement.state |= (LOC_GNSS_MEASUREMENT_STATE_BDS_D2_BIT_SYNC |
+                LOC_GNSS_MEASUREMENT_STATE_BDS_D2_SUBFRAME_SYNC);
+        }
         gnssMeasurement.received_sv_time_in_ns =
             (int64_t)(((double)gnss_measurement_info.svTimeSpeed.svTimeMs +
              (double)gnss_measurement_info.svTimeSpeed.svTimeSubMs) * 1e6);
@@ -3531,6 +3598,7 @@ void LocApiV02 :: convertGnssMeasurements (LocGnssMeasurement& gnssMeasurement,
         /* bit sync */
         gnssMeasurement.state = LOC_GNSS_MEASUREMENT_STATE_BIT_SYNC |
                                 LOC_GNSS_MEASUREMENT_STATE_CODE_LOCK;
+        gnssMeasurement.state |= galSVstateMask;
         gnssMeasurement.received_sv_time_in_ns =
             (int64_t)(fmod(((double)gnss_measurement_info.svTimeSpeed.svTimeMs +
                   (double)gnss_measurement_info.svTimeSpeed.svTimeSubMs), 20) * 1e6);
@@ -3539,6 +3607,7 @@ void LocApiV02 :: convertGnssMeasurements (LocGnssMeasurement& gnssMeasurement,
     } else if (validMask & QMI_LOC_MASK_MEAS_STATUS_SM_VALID_V02) {
         /* code lock */
         gnssMeasurement.state = LOC_GNSS_MEASUREMENT_STATE_CODE_LOCK;
+        gnssMeasurement.state |= galSVstateMask;
         gnssMeasurement.received_sv_time_in_ns =
              (int64_t)((double)gnss_measurement_info.svTimeSpeed.svTimeSubMs * 1e6);
         gnssMeasurement.received_sv_time_uncertainty_in_ns = (int64_t)gpsTowUncNs;
