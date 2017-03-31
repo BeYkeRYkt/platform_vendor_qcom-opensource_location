@@ -2203,6 +2203,7 @@ void LocApiV02 :: reportPosition (
 
             // Technology Mask
             tech_Mask |= location_report_ptr->technologyMask;
+            locationExtended.flags |= GPS_LOCATION_EXTENDED_HAS_POS_TECH_MASK;
             locationExtended.tech_mask = convertPosTechMask(location_report_ptr->technologyMask);
 
             //Mark the location source as from GNSS
@@ -2422,6 +2423,8 @@ void  LocApiV02 :: reportSv (
       num_svs_max = LOC_GNSS_MAX_SVS;
     }
     SvStatus.num_svs = 0;
+    locationExtended.flags = GPS_LOCATION_EXTENDED_HAS_SV_SOURCE_INFO;
+    locationExtended.sv_source = ULP_SVINFO_IS_FROM_GNSS;
     for(i = 0; i < num_svs_max; i++)
     {
       sv_info_ptr = &(gnss_report_ptr->svList[i]);
