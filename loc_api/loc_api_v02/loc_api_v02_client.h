@@ -669,6 +669,9 @@ typedef union
 
     const qmiLocStopDbtReqMsgT_v02 *pStopDbtReq;
     /*QMI_LOC_STOP_DBT_REQ_V02*/
+
+    const qmiLocDeleteGNSSServiceDataReqMsgT_v02* pDeleteGNSSServiceDataReq;
+    /* QMI_LOC_DELETE_GNSS_SERVICE_DATA_REQ_V02*/
 }locClientReqUnionType;
 
 

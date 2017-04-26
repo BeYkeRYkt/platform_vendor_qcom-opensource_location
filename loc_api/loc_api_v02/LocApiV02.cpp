@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2015, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -289,7 +289,9 @@ LocApiV02 :: open(LOC_API_ADAPTER_EVENT_MASK_T mask)
   if( (qmiMask & QMI_LOC_EVENT_MASK_GNSS_MEASUREMENT_REPORT_V02) ||
       (qmiMask & QMI_LOC_EVENT_MASK_GNSS_SV_POLYNOMIAL_REPORT_V02) )
   {
-     setSvMeasurementConstellation(eQMI_SYSTEM_GPS_V02|eQMI_SYSTEM_GLO_V02);
+     setSvMeasurementConstellation(eQMI_SYSTEM_GPS_V02|eQMI_SYSTEM_GLO_V02
+                                   |eQMI_SYSTEM_QZSS_V02
+                                   );
   }
   LOC_LOGD("%s:%d]: Exit mMask: %x; mask: %x mQmiMask: %lld qmiMask: %lld",
            __func__, __LINE__, mMask, mask, mQmiMask, qmiMask);
@@ -631,150 +633,287 @@ enum loc_api_adapter_err LocApiV02 ::
 /* delete assistance date */
 enum loc_api_adapter_err LocApiV02 ::  deleteAidingData(GpsAidingData f)
 {
+  static bool isNewApiSupported = true;
   locClientReqUnionType req_union;
-  locClientStatusEnumType status;
-  qmiLocDeleteAssistDataReqMsgT_v02 delete_req;
-  qmiLocDeleteAssistDataIndMsgT_v02 delete_resp;
+  locClientStatusEnumType status = eLOC_CLIENT_FAILURE_UNSUPPORTED;
 
-  memset(&delete_req, 0, sizeof(delete_req));
-  memset(&delete_resp, 0, sizeof(delete_resp));
-
-  if( f == GPS_DELETE_ALL )
+  if (isNewApiSupported)
   {
-    delete_req.deleteAllFlag = true;
+      qmiLocDeleteGNSSServiceDataReqMsgT_v02 delete_gnss_req;
+      qmiLocDeleteGNSSServiceDataIndMsgT_v02 delete_gnss_resp;
+
+      memset(&delete_gnss_req, 0, sizeof(delete_gnss_req));
+      memset(&delete_gnss_resp, 0, sizeof(delete_gnss_resp));
+
+      if (GPS_DELETE_ALL == f)
+      {
+          delete_gnss_req.deleteAllFlag = true;
+      }
+      else
+      {
+          if (f & GPS_DELETE_EPHEMERIS)
+          {
+              delete_gnss_req.deleteSatelliteData_valid = 1;
+              delete_gnss_req.deleteSatelliteData.deleteSatelliteDataMask |= QMI_LOC_DELETE_DATA_MASK_EPHEMERIS_V02;
+          }
+
+          if (f & GPS_DELETE_ALMANAC)
+          {
+              delete_gnss_req.deleteSatelliteData_valid = 1;
+              delete_gnss_req.deleteSatelliteData.deleteSatelliteDataMask |= QMI_LOC_DELETE_DATA_MASK_ALMANAC_V02;
+          }
+
+          if (f & GPS_DELETE_POSITION)
+          {
+              delete_gnss_req.deleteCommonDataMask_valid = 1;
+              delete_gnss_req.deleteCommonDataMask |= QMI_LOC_DELETE_COMMON_MASK_POS_V02;
+          }
+
+          if (f & GPS_DELETE_TIME)
+          {
+              delete_gnss_req.deleteCommonDataMask_valid = 1;
+              delete_gnss_req.deleteCommonDataMask |= QMI_LOC_DELETE_COMMON_MASK_TIME_V02;
+
+              delete_gnss_req.deleteSatelliteData_valid = 1;
+              delete_gnss_req.deleteSatelliteData.deleteSatelliteDataMask |= QMI_LOC_DELETE_DATA_MASK_TIME_V02;
+          }
+
+          if (f & GPS_DELETE_IONO)
+          {
+              delete_gnss_req.deleteSatelliteData_valid = 1;
+              delete_gnss_req.deleteSatelliteData.deleteSatelliteDataMask |= QMI_LOC_DELETE_DATA_MASK_IONO_V02;
+          }
+
+          if (f & GPS_DELETE_UTC)
+          {
+              delete_gnss_req.deleteCommonDataMask_valid = 1;
+              delete_gnss_req.deleteCommonDataMask |= QMI_LOC_DELETE_COMMON_MASK_UTC_V02;
+          }
+
+          if (f & GPS_DELETE_HEALTH)
+          {
+              delete_gnss_req.deleteSatelliteData_valid = 1;
+              delete_gnss_req.deleteSatelliteData.deleteSatelliteDataMask |= QMI_LOC_DELETE_DATA_MASK_SVHEALTH_V02;
+          }
+
+          if (f & GPS_DELETE_SVDIR)
+          {
+              delete_gnss_req.deleteSatelliteData_valid = 1;
+              delete_gnss_req.deleteSatelliteData.deleteSatelliteDataMask |= QMI_LOC_DELETE_DATA_MASK_SVDIR_V02;
+          }
+
+          if (f & GPS_DELETE_SVSTEER)
+          {
+              delete_gnss_req.deleteSatelliteData_valid = 1;
+              delete_gnss_req.deleteSatelliteData.deleteSatelliteDataMask |= QMI_LOC_DELETE_DATA_MASK_SVSTEER_V02;
+          }
+
+          if (f & GPS_DELETE_SADATA)
+          {
+              delete_gnss_req.deleteSatelliteData_valid = 1;
+              delete_gnss_req.deleteSatelliteData.deleteSatelliteDataMask |= QMI_LOC_DELETE_DATA_MASK_SA_DATA_V02;
+          }
+
+          if (f & GPS_DELETE_RTI)
+          {
+              delete_gnss_req.deleteCommonDataMask_valid = 1;
+              delete_gnss_req.deleteCommonDataMask |= QMI_LOC_DELETE_COMMON_MASK_RTI_V02;
+          }
+
+          if (delete_gnss_req.deleteSatelliteData_valid)
+          {
+              delete_gnss_req.deleteSatelliteData.system |= QMI_LOC_SYSTEM_GPS_V02;
+              delete_gnss_req.deleteSatelliteData.system |= QMI_LOC_SYSTEM_GLO_V02;
+              delete_gnss_req.deleteSatelliteData.system |= QMI_LOC_SYSTEM_BDS_V02;
+              delete_gnss_req.deleteSatelliteData.system |= QMI_LOC_SYSTEM_GAL_V02;
+              delete_gnss_req.deleteSatelliteData.system |= QMI_LOC_SYSTEM_QZSS_V02;
+          }
+
+          if (f & GPS_DELETE_CELLDB_INFO)
+          {
+              delete_gnss_req.deleteCellDbDataMask_valid = 1;
+              delete_gnss_req.deleteCellDbDataMask =
+                  (QMI_LOC_MASK_DELETE_CELLDB_POS_V02 |
+                      QMI_LOC_MASK_DELETE_CELLDB_LATEST_GPS_POS_V02 |
+                      QMI_LOC_MASK_DELETE_CELLDB_OTA_POS_V02 |
+                      QMI_LOC_MASK_DELETE_CELLDB_EXT_REF_POS_V02 |
+                      QMI_LOC_MASK_DELETE_CELLDB_TIMETAG_V02 |
+                      QMI_LOC_MASK_DELETE_CELLDB_CELLID_V02 |
+                      QMI_LOC_MASK_DELETE_CELLDB_CACHED_CELLID_V02 |
+                      QMI_LOC_MASK_DELETE_CELLDB_LAST_SRV_CELL_V02 |
+                      QMI_LOC_MASK_DELETE_CELLDB_CUR_SRV_CELL_V02 |
+                      QMI_LOC_MASK_DELETE_CELLDB_NEIGHBOR_INFO_V02);
+
+          }
+      }
+
+      req_union.pDeleteGNSSServiceDataReq = &delete_gnss_req;
+
+      status = loc_sync_send_req(clientHandle,
+          QMI_LOC_DELETE_GNSS_SERVICE_DATA_REQ_V02,
+          req_union, LOC_ENGINE_SYNC_REQUEST_TIMEOUT,
+          QMI_LOC_DELETE_GNSS_SERVICE_DATA_IND_V02,
+          &delete_gnss_resp);
+
+      if (status != eLOC_CLIENT_SUCCESS ||
+          eQMI_LOC_SUCCESS_V02 != delete_gnss_resp.status)
+      {
+          LOC_LOGE("%s:%d]: error! status = %s, delete_resp.status = %s\n",
+              __func__, __LINE__,
+              loc_get_v02_client_status_name(status),
+              loc_get_v02_qmi_status_name(delete_gnss_resp.status));
+      }
   }
 
-  else
+  if (eLOC_CLIENT_FAILURE_UNSUPPORTED == status ||
+      eLOC_CLIENT_FAILURE_INTERNAL == status)
   {
-    /* to keep track of svInfoList for GPS and GLO*/
-    uint32_t curr_sv_len = 0;
-    uint32_t curr_sv_idx = 0;
-    uint32_t sv_id =  0;
+      // If the new API is not supported we fall back on the old one
+      // The error could be eLOC_CLIENT_FAILURE_INTERNAL if
+      // QMI_LOC_DELETE_GNSS_SERVICE_DATA_REQ_V02 is not in the .idl file
+      LOC_LOGD("%s:%d]: QMI_LOC_DELETE_GNSS_SERVICE_DATA_REQ_V02 not supported"
+          "We use QMI_LOC_DELETE_ASSIST_DATA_REQ_V02\n",
+          __func__, __LINE__);
+      isNewApiSupported = false;
 
-    if((f & GPS_DELETE_EPHEMERIS ) || ( f & GPS_DELETE_ALMANAC ))
-    {
-      /* do delete for all GPS SV's */
+      qmiLocDeleteAssistDataReqMsgT_v02 delete_req;
+      qmiLocDeleteAssistDataIndMsgT_v02 delete_resp;
 
-      curr_sv_len += SV_ID_RANGE;
+      memset(&delete_req, 0, sizeof(delete_req));
+      memset(&delete_resp, 0, sizeof(delete_resp));
 
-      sv_id = GPS_SV_ID_OFFSET;
+      if( f == GPS_DELETE_ALL )
+      {
+          delete_req.deleteAllFlag = true;
+      }
+      else
+      {
+          /* to keep track of svInfoList for GPS and GLO*/
+          uint32_t curr_sv_len = 0;
+          uint32_t curr_sv_idx = 0;
+          uint32_t sv_id =  0;
 
-      delete_req.deleteSvInfoList_valid = 1;
+          if((f & GPS_DELETE_EPHEMERIS ) || ( f & GPS_DELETE_ALMANAC ))
+          {
+              /* do delete for all GPS SV's */
 
-      delete_req.deleteSvInfoList_len = curr_sv_len;
+              curr_sv_len += SV_ID_RANGE;
 
-      LOC_LOGV("%s:%d]: Delete GPS SV info for index %d to %d"
+              sv_id = GPS_SV_ID_OFFSET;
+
+              delete_req.deleteSvInfoList_valid = 1;
+
+              delete_req.deleteSvInfoList_len = curr_sv_len;
+
+              LOC_LOGV("%s:%d]: Delete GPS SV info for index %d to %d"
                     "and sv id %d to %d \n",
                     __func__, __LINE__, curr_sv_idx, curr_sv_len - 1,
                     sv_id, sv_id+SV_ID_RANGE-1);
 
-      for( uint32_t i = curr_sv_idx; i< curr_sv_len ; i++, sv_id++ )
-      {
-        delete_req.deleteSvInfoList[i].gnssSvId = sv_id;
+              for( uint32_t i = curr_sv_idx; i< curr_sv_len ; i++, sv_id++ )
+              {
+                  delete_req.deleteSvInfoList[i].gnssSvId = sv_id;
 
-        delete_req.deleteSvInfoList[i].system = eQMI_LOC_SV_SYSTEM_GPS_V02;
+                  delete_req.deleteSvInfoList[i].system = eQMI_LOC_SV_SYSTEM_GPS_V02;
 
-        if(f & GPS_DELETE_EPHEMERIS )
-        {
-          // set ephemeris mask for all GPS SV's
-          delete_req.deleteSvInfoList[i].deleteSvInfoMask |=
-            QMI_LOC_MASK_DELETE_EPHEMERIS_V02;
-        }
+                  if(f & GPS_DELETE_EPHEMERIS )
+                  {
+                      // set ephemeris mask for all GPS SV's
+                      delete_req.deleteSvInfoList[i].deleteSvInfoMask |=
+                          QMI_LOC_MASK_DELETE_EPHEMERIS_V02;
+                  }
 
-        if( f & GPS_DELETE_ALMANAC )
-        {
-          delete_req.deleteSvInfoList[i].deleteSvInfoMask |=
-            QMI_LOC_MASK_DELETE_ALMANAC_V02;
-        }
+                  if( f & GPS_DELETE_ALMANAC )
+                  {
+                      delete_req.deleteSvInfoList[i].deleteSvInfoMask |=
+                          QMI_LOC_MASK_DELETE_ALMANAC_V02;
+                  }
+              }
+              // increment the current index
+              curr_sv_idx += SV_ID_RANGE;
+          }
+
+          if(f & GPS_DELETE_POSITION )
+          {
+              delete_req.deleteGnssDataMask_valid = 1;
+              delete_req.deleteGnssDataMask |= QMI_LOC_MASK_DELETE_POSITION_V02;
+          }
+
+          if(f & GPS_DELETE_TIME )
+          {
+              delete_req.deleteGnssDataMask_valid = 1;
+              delete_req.deleteGnssDataMask |= QMI_LOC_MASK_DELETE_TIME_V02;
+          }
+
+          if(f & GPS_DELETE_IONO )
+          {
+              delete_req.deleteGnssDataMask_valid = 1;
+              delete_req.deleteGnssDataMask |= QMI_LOC_MASK_DELETE_IONO_V02;
+          }
+
+          if(f & GPS_DELETE_UTC )
+          {
+              delete_req.deleteGnssDataMask_valid = 1;
+              delete_req.deleteGnssDataMask |= QMI_LOC_MASK_DELETE_UTC_V02;
+          }
+
+          if(f & GPS_DELETE_HEALTH )
+          {
+              delete_req.deleteGnssDataMask_valid = 1;
+              delete_req.deleteGnssDataMask |= QMI_LOC_MASK_DELETE_HEALTH_V02;
+          }
+
+          if(f & GPS_DELETE_SVDIR )
+          {
+              delete_req.deleteGnssDataMask_valid = 1;
+              delete_req.deleteGnssDataMask |= QMI_LOC_MASK_DELETE_GPS_SVDIR_V02;
+          }
+          if(f & GPS_DELETE_SADATA )
+          {
+          delete_req.deleteGnssDataMask_valid = 1;
+          delete_req.deleteGnssDataMask |= QMI_LOC_MASK_DELETE_SADATA_V02;
+          }
+          if(f & GPS_DELETE_RTI )
+          {
+          delete_req.deleteGnssDataMask_valid = 1;
+          delete_req.deleteGnssDataMask |= QMI_LOC_MASK_DELETE_RTI_V02;
+          }
+          if(f & GPS_DELETE_CELLDB_INFO )
+          {
+          delete_req.deleteCellDbDataMask_valid = 1;
+          delete_req.deleteCellDbDataMask =
+          ( QMI_LOC_MASK_DELETE_CELLDB_POS_V02 |
+            QMI_LOC_MASK_DELETE_CELLDB_LATEST_GPS_POS_V02 |
+            QMI_LOC_MASK_DELETE_CELLDB_OTA_POS_V02 |
+            QMI_LOC_MASK_DELETE_CELLDB_EXT_REF_POS_V02 |
+            QMI_LOC_MASK_DELETE_CELLDB_TIMETAG_V02 |
+            QMI_LOC_MASK_DELETE_CELLDB_CELLID_V02 |
+            QMI_LOC_MASK_DELETE_CELLDB_CACHED_CELLID_V02 |
+            QMI_LOC_MASK_DELETE_CELLDB_LAST_SRV_CELL_V02 |
+            QMI_LOC_MASK_DELETE_CELLDB_CUR_SRV_CELL_V02 |
+            QMI_LOC_MASK_DELETE_CELLDB_NEIGHBOR_INFO_V02) ;
+
+          }
+
       }
-      // increment the current index
-      curr_sv_idx += SV_ID_RANGE;
 
-    }
+      req_union.pDeleteAssistDataReq = &delete_req;
 
-    if(f & GPS_DELETE_POSITION )
-    {
-      delete_req.deleteGnssDataMask_valid = 1;
-      delete_req.deleteGnssDataMask |= QMI_LOC_MASK_DELETE_POSITION_V02;
-    }
-
-    if(f & GPS_DELETE_TIME )
-    {
-      delete_req.deleteGnssDataMask_valid = 1;
-      delete_req.deleteGnssDataMask |= QMI_LOC_MASK_DELETE_TIME_V02;
-    }
-
-    if(f & GPS_DELETE_IONO )
-    {
-      delete_req.deleteGnssDataMask_valid = 1;
-      delete_req.deleteGnssDataMask |= QMI_LOC_MASK_DELETE_IONO_V02;
-    }
-
-    if(f & GPS_DELETE_UTC )
-    {
-      delete_req.deleteGnssDataMask_valid = 1;
-      delete_req.deleteGnssDataMask |= QMI_LOC_MASK_DELETE_UTC_V02;
-    }
-
-    if(f & GPS_DELETE_HEALTH )
-    {
-      delete_req.deleteGnssDataMask_valid = 1;
-      delete_req.deleteGnssDataMask |= QMI_LOC_MASK_DELETE_HEALTH_V02;
-    }
-
-    if(f & GPS_DELETE_SVDIR )
-    {
-      delete_req.deleteGnssDataMask_valid = 1;
-      delete_req.deleteGnssDataMask |= QMI_LOC_MASK_DELETE_GPS_SVDIR_V02;
-    }
-    if(f & GPS_DELETE_SADATA )
-    {
-      delete_req.deleteGnssDataMask_valid = 1;
-      delete_req.deleteGnssDataMask |= QMI_LOC_MASK_DELETE_SADATA_V02;
-    }
-    if(f & GPS_DELETE_RTI )
-    {
-      delete_req.deleteGnssDataMask_valid = 1;
-      delete_req.deleteGnssDataMask |= QMI_LOC_MASK_DELETE_RTI_V02;
-    }
-    if(f & GPS_DELETE_CELLDB_INFO )
-    {
-      delete_req.deleteCellDbDataMask_valid = 1;
-      delete_req.deleteCellDbDataMask =
-        ( QMI_LOC_MASK_DELETE_CELLDB_POS_V02 |
-          QMI_LOC_MASK_DELETE_CELLDB_LATEST_GPS_POS_V02 |
-          QMI_LOC_MASK_DELETE_CELLDB_OTA_POS_V02 |
-          QMI_LOC_MASK_DELETE_CELLDB_EXT_REF_POS_V02 |
-          QMI_LOC_MASK_DELETE_CELLDB_TIMETAG_V02 |
-          QMI_LOC_MASK_DELETE_CELLDB_CELLID_V02 |
-          QMI_LOC_MASK_DELETE_CELLDB_CACHED_CELLID_V02 |
-          QMI_LOC_MASK_DELETE_CELLDB_LAST_SRV_CELL_V02 |
-          QMI_LOC_MASK_DELETE_CELLDB_CUR_SRV_CELL_V02 |
-          QMI_LOC_MASK_DELETE_CELLDB_NEIGHBOR_INFO_V02) ;
-
-    }
-#ifndef PDK_FEATURE_SET
-#endif
-
-  }
-
-  req_union.pDeleteAssistDataReq = &delete_req;
-
-  status = loc_sync_send_req(clientHandle,
+      status = loc_sync_send_req(clientHandle,
                              QMI_LOC_DELETE_ASSIST_DATA_REQ_V02,
                              req_union, LOC_ENGINE_SYNC_REQUEST_TIMEOUT,
                              QMI_LOC_DELETE_ASSIST_DATA_IND_V02,
                              &delete_resp);
 
-  if (status != eLOC_CLIENT_SUCCESS ||
-      eQMI_LOC_SUCCESS_V02 != delete_resp.status)
-  {
-    LOC_LOGE ("%s:%d]: error! status = %s, delete_resp.status = %s\n",
+      if (status != eLOC_CLIENT_SUCCESS ||
+          eQMI_LOC_SUCCESS_V02 != delete_resp.status)
+      {
+          LOC_LOGE ("%s:%d]: error! status = %s, delete_resp.status = %s\n",
               __func__, __LINE__,
               loc_get_v02_client_status_name(status),
               loc_get_v02_qmi_status_name(delete_resp.status));
+      }
   }
-
   return convertErr(status);
 }
 
@@ -1999,6 +2138,22 @@ void  LocApiV02 :: reportSv (
              (sv_info_ptr->svStatus == eQMI_LOC_SV_STATUS_TRACK_V02))
           {
             SvStatus.bds_used_in_fix_mask |= (1 << (sv_info_ptr->gnssSvId-1-200));
+          }
+            SvStatus.sv_list[SvStatus.num_svs].prn =
+                sv_info_ptr->gnssSvId;
+        }
+
+        //QZSS: Slot id: 1-32
+        //In extended measurement report, we follow nmea standard,
+        //which is 193-197
+        else if(sv_info_ptr->system == eQMI_LOC_SV_SYSTEM_QZSS_V02)
+        {
+          if((sv_info_ptr->validMask &
+              QMI_LOC_SV_INFO_MASK_VALID_PROCESS_STATUS_V02)
+             &&
+             (sv_info_ptr->svStatus == eQMI_LOC_SV_STATUS_TRACK_V02))
+          {
+            SvStatus.qzss_used_in_fix_mask |= (1 << (sv_info_ptr->gnssSvId-193));
           }
             SvStatus.sv_list[SvStatus.num_svs].prn =
                 sv_info_ptr->gnssSvId;

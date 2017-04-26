@@ -564,7 +564,11 @@ static locClientRespIndTableStructT locClientRespIndTable[]= {
      sizeof(qmiLocStartDbtIndMsgT_v02)},
 
    { QMI_LOC_STOP_DBT_IND_V02,
-     sizeof(qmiLocStopDbtIndMsgT_v02)}
+     sizeof(qmiLocStopDbtIndMsgT_v02)},
+
+  //Delete Gnss Service Data Resp Ind
+   { QMI_LOC_DELETE_GNSS_SERVICE_DATA_IND_V02,
+     sizeof(qmiLocDeleteGNSSServiceDataIndMsgT_v02)}
 };
 
 
@@ -724,7 +728,7 @@ static locClientStatusEnumType convertQmiResponseToLocStatus(
         break;
     }
   }
-  LOC_LOGV("%s:%d]: result = %d, error = %d, status = %d\n",
+  LOC_LOGV("%s:%d]: result = %d, error = 0x%x, status = %d\n",
                 __func__, __LINE__, pResponse->resp.result,
                 pResponse->resp.error, status);
   return status;
@@ -1401,6 +1405,12 @@ static bool validateRequest(
     {
         *pOutLen = sizeof(qmiLocStopDbtReqMsgT_v02);
         break;
+    }
+
+    case QMI_LOC_DELETE_GNSS_SERVICE_DATA_REQ_V02:
+    {
+      *pOutLen = sizeof(qmiLocDeleteGNSSServiceDataReqMsgT_v02);
+      break;
     }
 
     // ALL requests with no payload
