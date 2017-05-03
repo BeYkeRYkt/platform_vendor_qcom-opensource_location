@@ -2203,6 +2203,7 @@ void LocApiV02 :: reportPosition (
 
             // Technology Mask
             tech_Mask |= location_report_ptr->technologyMask;
+            locationExtended.flags |= GPS_LOCATION_EXTENDED_HAS_POS_TECH_MASK;
             locationExtended.tech_mask = convertPosTechMask(location_report_ptr->technologyMask);
 
             //Mark the location source as from GNSS
@@ -2353,7 +2354,7 @@ void LocApiV02 :: reportPosition (
             }
 
             if((0 == location_report_ptr->latitude) &&
-               (0 == location_report_ptr->latitude) &&
+               (0 == location_report_ptr->longitude) &&
                (1 == location_report_ptr->horReliability_valid) &&
                (eQMI_LOC_RELIABILITY_NOT_SET_V02 ==
                    location_report_ptr->horReliability))
@@ -2422,6 +2423,8 @@ void  LocApiV02 :: reportSv (
       num_svs_max = LOC_GNSS_MAX_SVS;
     }
     SvStatus.num_svs = 0;
+    locationExtended.flags = GPS_LOCATION_EXTENDED_HAS_SV_SOURCE_INFO;
+    locationExtended.sv_source = ULP_SVINFO_IS_FROM_GNSS;
     for(i = 0; i < num_svs_max; i++)
     {
       sv_info_ptr = &(gnss_report_ptr->svList[i]);
@@ -4631,6 +4634,11 @@ handleWwanZppFixIndication(const qmiLocGetAvailWwanPositionIndMsgT_v02& zpp_ind)
     if (zpp_ind.altitudeWrtEllipsoid_valid) {
         zppLoc.flags |= LOC_GPS_LOCATION_HAS_ALTITUDE;
         zppLoc.altitude = zpp_ind.altitudeWrtEllipsoid;
+    }
+
+    if (zpp_ind.vertUnc_valid) {
+        zppLoc.flags |= LOC_GPS_LOCATION_HAS_VERT_UNCERTAINITY;
+        zppLoc.vertUncertainity = zpp_ind.vertUnc;
     }
 
     LocApiBase::reportWwanZppFix(zppLoc);
