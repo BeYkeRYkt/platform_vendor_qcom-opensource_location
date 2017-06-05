@@ -2343,6 +2343,11 @@ void LocApiV02 :: reportPosition (
                         locationExtended.gnss_sv_used_ids.gal_sv_used_ids_mask |=
                                                     (1 << (gnssSvIdUsed - GAL_SV_PRN_MIN));
                     }
+                    else if ((gnssSvIdUsed >= QZSS_SV_PRN_MIN) && (gnssSvIdUsed <= QZSS_SV_PRN_MAX))
+                    {
+                        locationExtended.gnss_sv_used_ids.qzss_sv_used_ids_mask |=
+                                                    (1 << (gnssSvIdUsed - QZSS_SV_PRN_MIN));
+                    }
                 }
             }
 
@@ -2460,7 +2465,7 @@ void  LocApiV02 :: reportSv (
             break;
 
           case eQMI_LOC_SV_SYSTEM_QZSS_V02:
-            SvStatus.gnss_sv_list[SvStatus.num_svs].svid = sv_info_ptr->gnssSvId;
+            SvStatus.gnss_sv_list[SvStatus.num_svs].svid = sv_info_ptr->gnssSvId - 192;
             SvStatus.gnss_sv_list[SvStatus.num_svs].constellation = LOC_GNSS_CONSTELLATION_QZSS;
             break;
 
