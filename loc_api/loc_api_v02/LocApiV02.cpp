@@ -1967,11 +1967,12 @@ locClientEventMaskType LocApiV02 :: convertMask(
 
   if (mask & LOC_API_ADAPTER_BIT_ASSISTANCE_DATA_REQUEST)
   {
-    // TBD: This needs to be decoupled in the HAL
     eventMask |= QMI_LOC_EVENT_MASK_INJECT_PREDICTED_ORBITS_REQ_V02;
     eventMask |= QMI_LOC_EVENT_MASK_INJECT_TIME_REQ_V02;
-    eventMask |= QMI_LOC_EVENT_MASK_INJECT_POSITION_REQ_V02;
   }
+
+  if (mask & LOC_API_ADAPTER_BIT_POSITION_INJECTION_REQUEST)
+      eventMask |= QMI_LOC_EVENT_MASK_INJECT_POSITION_REQ_V02;
 
   if (mask & LOC_API_ADAPTER_BIT_STATUS_REPORT)
   {
@@ -2504,26 +2505,7 @@ void  LocApiV02 :: reportSv (
           }
         }
 
-        /* Even if modem stops tracking some SV’s, it reports them in the measurement
-           report with Ephermeris/Alamanac data with 0 SNR. So in addition to check for
-           availability of Alm or Eph data, also check for SNR > 0 to indicate SV is
-           used in fix. */
-        if ((sv_info_ptr->validMask &
-             QMI_LOC_SV_INFO_MASK_VALID_PROCESS_STATUS_V02)
-             &&
-             (sv_info_ptr->svStatus == eQMI_LOC_SV_STATUS_TRACK_V02)
-             &&
-             (sv_info_ptr->snr > 0)
-             &&
-             ((flags & LOC_GNSS_SV_FLAGS_HAS_EPHEMERIS_DATA)
-               ||
-              (flags & LOC_GNSS_SV_FLAGS_HAS_ALMANAC_DATA)))
-        {
-            flags |= LOC_GNSS_SV_FLAGS_USED_IN_FIX;
-        }
-
         SvStatus.gnss_sv_list[SvStatus.num_svs].flags = flags;
-
         SvStatus.num_svs++;
       }
     }
