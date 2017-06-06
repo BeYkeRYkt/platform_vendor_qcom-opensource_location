@@ -80,6 +80,9 @@ using namespace loc_core;
 /* number of QMI_LOC messages that need to be checked*/
 #define NUMBER_OF_MSG_TO_BE_CHECKED        (3)
 
+/* the time, in seconds, to wait for user response for NI  */
+#define LOC_NI_NO_RESPONSE_TIME 20
+
 /* Gaussian 2D scaling table - scale from x% to 68% confidence */
 struct conf_scaler_to_68_pair {
     uint8_t confidence;
@@ -578,6 +581,13 @@ enum loc_api_adapter_err LocApiV02 :: startFix(const LocPosMode& fixCriteria)
           {
               //fix needs low accuracy
               start_msg.horizontalAccuracyLevel =  eQMI_LOC_ACCURACY_LOW_V02;
+              // limit the scanning max time to 1 min and TBF to 10 min
+              // this is to control the power cost for gps for LOW accuracy
+              start_msg.positionReportTimeout_valid = 1;
+              start_msg.positionReportTimeout = 60000;
+              if (start_msg.minInterval < 600000) {
+                  start_msg.minInterval = 600000;
+              }
           }
       }
 
@@ -2269,6 +2279,7 @@ void LocApiV02 :: reportPosition (
 
             // Technology Mask
             tech_Mask |= location_report_ptr->technologyMask;
+            locationExtended.flags |= GPS_LOCATION_EXTENDED_HAS_POS_TECH_MASK;
             locationExtended.tech_mask = convertPosTechMask(location_report_ptr->technologyMask);
 
             //Mark the location source as from GNSS
@@ -2409,6 +2420,11 @@ void LocApiV02 :: reportPosition (
                         locationExtended.gnss_sv_used_ids.gal_sv_used_ids_mask |=
                                                     (1 << (gnssSvIdUsed - GAL_SV_PRN_MIN));
                     }
+                    else if ((gnssSvIdUsed >= QZSS_SV_PRN_MIN) && (gnssSvIdUsed <= QZSS_SV_PRN_MAX))
+                    {
+                        locationExtended.gnss_sv_used_ids.qzss_sv_used_ids_mask |=
+                                                    (1 << (gnssSvIdUsed - QZSS_SV_PRN_MIN));
+                    }
                 }
             }
 
@@ -2520,7 +2536,7 @@ void  LocApiV02 :: reportSv (
             break;
 
           case eQMI_LOC_SV_SYSTEM_QZSS_V02:
-            SvNotify.gnssSvs[SvNotify.count].svId = sv_info_ptr->gnssSvId;
+            SvNotify.gnssSvs[SvNotify.count].svId = sv_info_ptr->gnssSvId - 192;
             SvNotify.gnssSvs[SvNotify.count].type = GNSS_SV_TYPE_QZSS;
             break;
 
@@ -2559,24 +2575,6 @@ void  LocApiV02 :: reportSv (
           {
               mask |= GNSS_SV_OPTIONS_HAS_ALMANAC_BIT;
           }
-        }
-
-        /* Even if modem stops tracking some SV’s, it reports them in the measurement
-           report with Ephermeris/Alamanac data with 0 SNR. So in addition to check for
-           availability of Alm or Eph data, also check for SNR > 0 to indicate SV is
-           used in fix. */
-        if ((sv_info_ptr->validMask &
-             QMI_LOC_SV_INFO_MASK_VALID_PROCESS_STATUS_V02)
-             &&
-             (sv_info_ptr->svStatus == eQMI_LOC_SV_STATUS_TRACK_V02)
-             &&
-             (sv_info_ptr->snr > 0)
-             &&
-             ((mask & GNSS_SV_OPTIONS_HAS_EPHEMER_BIT)
-               ||
-              (mask & GNSS_SV_OPTIONS_HAS_ALMANAC_BIT)))
-        {
-            mask |= GNSS_SV_OPTIONS_USED_IN_FIX_BIT;
         }
 
         SvNotify.gnssSvs[SvNotify.count].gnssSvOptionsMask = mask;
@@ -3182,6 +3180,7 @@ void LocApiV02 :: reportNiRequest(
   notif.messageEncoding = GNSS_NI_ENCODING_TYPE_NONE ;
   notif.requestorEncoding = GNSS_NI_ENCODING_TYPE_NONE;
   notif.timeoutResponse = GNSS_NI_RESPONSE_NO_RESPONSE;
+  notif.timeout = LOC_NI_NO_RESPONSE_TIME;
 
   /*Handle Vx request */
   if(ni_req_ptr->NiVxInd_valid == 1)
@@ -4726,40 +4725,44 @@ handleWwanZppFixIndication(const qmiLocGetAvailWwanPositionIndMsgT_v02& zpp_ind)
                  zpp_ind.latitude_valid,
                  zpp_ind.longitude_valid,
                  zpp_ind.horUncCircular_valid);
-        return;
-    }
+    } else {
 
-    zppLoc.size = sizeof(LocGpsLocation);
-    if (zpp_ind.timestampUtc_valid) {
-        zppLoc.timestamp = zpp_ind.timestampUtc;
-    }
-    else {
-        /* The UTC time from modem is not valid.
-        In this case, we use current system time instead.*/
+        zppLoc.size = sizeof(LocGpsLocation);
+        if (zpp_ind.timestampUtc_valid) {
+            zppLoc.timestamp = zpp_ind.timestampUtc;
+        } else {
+            /* The UTC time from modem is not valid.
+            In this case, we use current system time instead.*/
 
-        struct timespec time_info_current;
-        clock_gettime(CLOCK_REALTIME,&time_info_current);
-        zppLoc.timestamp = (time_info_current.tv_sec)*1e3 +
-                           (time_info_current.tv_nsec)/1e6;
-        LOC_LOGD("zpp timestamp got from system: %llu", zppLoc.timestamp);
-    }
+            struct timespec time_info_current;
+            clock_gettime(CLOCK_REALTIME,&time_info_current);
+            zppLoc.timestamp = (time_info_current.tv_sec)*1e3 +
+                               (time_info_current.tv_nsec)/1e6;
+            LOC_LOGD("zpp timestamp got from system: %llu", zppLoc.timestamp);
+        }
 
-    zppLoc.flags = LOC_GPS_LOCATION_HAS_LAT_LONG | LOC_GPS_LOCATION_HAS_ACCURACY;
-    zppLoc.latitude = zpp_ind.latitude;
-    zppLoc.longitude = zpp_ind.longitude;
-    zppLoc.accuracy = zpp_ind.horUncCircular;
+        zppLoc.flags = LOC_GPS_LOCATION_HAS_LAT_LONG | LOC_GPS_LOCATION_HAS_ACCURACY;
+        zppLoc.latitude = zpp_ind.latitude;
+        zppLoc.longitude = zpp_ind.longitude;
+        zppLoc.accuracy = zpp_ind.horUncCircular;
 
-    // If horCircularConfidence_valid is true, and horCircularConfidence value
-    // is less than 68%, then scale the accuracy value to 68% confidence.
-    if (zpp_ind.horCircularConfidence_valid)
-    {
-        scaleAccuracyTo68PercentConfidence(zpp_ind.horCircularConfidence,
-                                           zppLoc, true);
-    }
+        // If horCircularConfidence_valid is true, and horCircularConfidence value
+        // is less than 68%, then scale the accuracy value to 68% confidence.
+        if (zpp_ind.horCircularConfidence_valid)
+        {
+            scaleAccuracyTo68PercentConfidence(zpp_ind.horCircularConfidence,
+                                               zppLoc, true);
+        }
 
-    if (zpp_ind.altitudeWrtEllipsoid_valid) {
-        zppLoc.flags |= LOC_GPS_LOCATION_HAS_ALTITUDE;
-        zppLoc.altitude = zpp_ind.altitudeWrtEllipsoid;
+        if (zpp_ind.altitudeWrtEllipsoid_valid) {
+            zppLoc.flags |= LOC_GPS_LOCATION_HAS_ALTITUDE;
+            zppLoc.altitude = zpp_ind.altitudeWrtEllipsoid;
+        }
+
+        if (zpp_ind.vertUnc_valid) {
+            zppLoc.flags |= LOC_GPS_LOCATION_HAS_VERT_UNCERTAINITY;
+            zppLoc.vertUncertainity = zpp_ind.vertUnc;
+        }
     }
 
     LocApiBase::reportWwanZppFix(zppLoc);
