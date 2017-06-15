@@ -2423,7 +2423,7 @@ void  LocApiV02 :: reportSv (
       num_svs_max = LOC_GNSS_MAX_SVS;
     }
     SvStatus.num_svs = 0;
-    locationExtended.flags = GPS_LOCATION_EXTENDED_HAS_SV_SOURCE_INFO;
+    locationExtended.flags |= GPS_LOCATION_EXTENDED_HAS_SV_SOURCE_INFO;
     locationExtended.sv_source = ULP_SVINFO_IS_FROM_GNSS;
     for(i = 0; i < num_svs_max; i++)
     {
