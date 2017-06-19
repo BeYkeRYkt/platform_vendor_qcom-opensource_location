@@ -261,7 +261,12 @@ static const locClientEventIndTableStructT locClientEventIndTable[]= {
 
   { QMI_LOC_EVENT_GDT_DOWNLOAD_END_REQ_IND_V02,
     sizeof(qmiLocEventGdtDownloadEndReqIndMsgT_v02),
-    0}
+    0},
+
+  //GNSS Measurement Indication
+  { QMI_LOC_EVENT_GNSS_MEASUREMENT_REPORT_IND_V02,
+    sizeof(qmiLocEventGnssSvMeasInfoIndMsgT_v02),
+    QMI_LOC_EVENT_MASK_GNSS_MEASUREMENT_REPORT_V02 }
 };
 
 /* table to relate the respInd Id with its size */
