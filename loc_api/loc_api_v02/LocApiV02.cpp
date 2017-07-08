@@ -575,6 +575,13 @@ enum loc_api_adapter_err LocApiV02 :: startFix(const LocPosMode& fixCriteria)
           {
               //fix needs low accuracy
               start_msg.horizontalAccuracyLevel =  eQMI_LOC_ACCURACY_LOW_V02;
+              // limit the scanning max time to 1 min and TBF to 10 min
+              // this is to control the power cost for gps for LOW accuracy
+              start_msg.positionReportTimeout_valid = 1;
+              start_msg.positionReportTimeout = 60000;
+              if (start_msg.minInterval < 600000) {
+                  start_msg.minInterval = 600000;
+              }
           }
       }
 
@@ -2345,6 +2352,11 @@ void LocApiV02 :: reportPosition (
                         locationExtended.gnss_sv_used_ids.gal_sv_used_ids_mask |=
                                                     (1 << (gnssSvIdUsed - GAL_SV_PRN_MIN));
                     }
+                    else if ((gnssSvIdUsed >= QZSS_SV_PRN_MIN) && (gnssSvIdUsed <= QZSS_SV_PRN_MAX))
+                    {
+                        locationExtended.gnss_sv_used_ids.qzss_sv_used_ids_mask |=
+                                                    (1 << (gnssSvIdUsed - QZSS_SV_PRN_MIN));
+                    }
                 }
             }
 
@@ -2354,6 +2366,12 @@ void LocApiV02 :: reportPosition (
                locationExtended.navSolutionMask = convertNavSolutionMask(location_report_ptr->navSolutionMask);
             }
 
+            if (location_report_ptr->gpsTime_valid)
+            {
+               locationExtended.flags |= GPS_LOCATION_EXTENDED_HAS_GPS_TIME;
+               locationExtended.gpsTime.gpsWeek = location_report_ptr->gpsTime.gpsWeek;
+               locationExtended.gpsTime.gpsTimeOfWeekMs = location_report_ptr->gpsTime.gpsTimeOfWeekMs;
+            }
             if((0 == location_report_ptr->latitude) &&
                (0 == location_report_ptr->longitude) &&
                (1 == location_report_ptr->horReliability_valid) &&
@@ -2464,7 +2482,7 @@ void  LocApiV02 :: reportSv (
             break;
 
           case eQMI_LOC_SV_SYSTEM_QZSS_V02:
-            SvStatus.gnss_sv_list[SvStatus.num_svs].svid = sv_info_ptr->gnssSvId;
+            SvStatus.gnss_sv_list[SvStatus.num_svs].svid = sv_info_ptr->gnssSvId - 192;
             SvStatus.gnss_sv_list[SvStatus.num_svs].constellation = LOC_GNSS_CONSTELLATION_QZSS;
             break;
 
