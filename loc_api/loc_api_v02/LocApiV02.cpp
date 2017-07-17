@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2016, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2017, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -2195,6 +2195,46 @@ void LocApiV02 :: reportPosition (
                                                     (1 << (gnssSvIdUsed - QZSS_SV_PRN_MIN));
                     }
                 }
+            }
+
+            // GNSS only position
+            locationExtended.gnss_only_position = false;
+            if (location_report_ptr->gnssOnlyPosition_valid &&
+                true == location_report_ptr->gnssOnlyPosition)
+            {
+                locationExtended.gnss_only_position = true;
+            }
+
+            // sensor sub tech mask
+            if (location_report_ptr->sensorSubTechnologyMask_valid)
+            {
+                locationExtended.flags |= GPS_LOCATION_EXTENDED_HAS_SENSOR_SUB_TECH_MASK;
+                locationExtended.sensor_sub_tech_mask = location_report_ptr->sensorSubTechnologyMask;
+            }
+
+            // velocity ENU(East, North, Up)
+            if (location_report_ptr->velEnu_valid)
+            {
+              locationExtended.flags |= GPS_LOCATION_EXTENDED_HAS_VELOCITY;
+              locationExtended.velocity[0] = location_report_ptr->velEnu[0];
+              locationExtended.velocity[1] = location_report_ptr->velEnu[1];
+              locationExtended.velocity[2] = location_report_ptr->velEnu[2];
+            }
+
+            // velsigma, A.K.A velUncEnu(East, North, Up)
+            if (location_report_ptr->velUncEnu_valid)
+            {
+              locationExtended.flags |= GPS_LOCATION_EXTENDED_HAS_VELOCITY_UNC;
+              locationExtended.velocity_unc[0] = location_report_ptr->velUncEnu[0];
+              locationExtended.velocity_unc[1] = location_report_ptr->velUncEnu[1];
+              locationExtended.velocity_unc[2] = location_report_ptr->velUncEnu[2];
+            }
+
+            // HEPE, A.K.A horizontal position uncertainty(circular)
+            if (location_report_ptr->horUncCircular_valid)
+            {
+              locationExtended.flags |= GPS_LOCATION_EXTENDED_HAS_HOR_UNC_CIRCULAR;
+              locationExtended.hor_unc_circular = location_report_ptr->horUncCircular;
             }
 
             if((0 == location_report_ptr->latitude) &&
