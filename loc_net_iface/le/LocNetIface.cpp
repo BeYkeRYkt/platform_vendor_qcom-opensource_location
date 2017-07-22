@@ -135,7 +135,9 @@ void LocNetIface::subscribeWithQcmap () {
     }
 
     /* Create a QCMAP Client instance */
-    mQcmapClientPtr = new QCMAP_Client(qcmapClientCallback);
+    // TODO: 8053 does not have support for QCMAP_client.
+    // Uncomment it when QCMAP is enabled.
+    // mQcmapClientPtr = new QCMAP_Client(qcmapClientCallback);
     if (mQcmapClientPtr == NULL) {
         LOC_LOGE("Failed to allocate QCMAP instance !");
         return;
