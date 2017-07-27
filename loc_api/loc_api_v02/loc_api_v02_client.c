@@ -639,7 +639,11 @@ static const locClientRespIndTableStructT locClientRespIndTable[]= {
 
    // SRN Ap data inject
    { QMI_LOC_INJECT_SRN_AP_DATA_IND_V02,
-     sizeof(qmiLocInjectSrnApDataIndMsgT_v02) }
+     sizeof(qmiLocInjectSrnApDataIndMsgT_v02) },
+
+   //xtra config data
+   { QMI_LOC_QUERY_XTRA_INFO_IND_V02,
+     sizeof(qmiLocQueryXtraInfoIndMsgT_v02) }
 };
 
 
@@ -1569,6 +1573,12 @@ static bool validateRequest(
         *pOutLen = sizeof(qmiLocInjectSrnApDataReqMsgT_v02);
         break;
     }
+    // Query Xtra config data
+    case QMI_LOC_QUERY_XTRA_INFO_REQ_V02 :
+    {
+        *pOutLen = sizeof(qmiLocQueryXtraInfoReqMsgT_v02);
+        break;
+    }
 
     // ALL requests with no payload
     case QMI_LOC_GET_SERVICE_REVISION_REQ_V02:
@@ -1902,9 +1912,6 @@ locClientStatusEnumType locClientOpen (
   {
   case GNSS_GSS:
     instanceId = eLOC_CLIENT_INSTANCE_ID_GSS;
-    break;
-  case GNSS_QCA1530:
-    instanceId = eLOC_CLIENT_INSTANCE_ID_QCA1530;
     break;
   case GNSS_MSM:
     instanceId = eLOC_CLIENT_INSTANCE_ID_MSM;
