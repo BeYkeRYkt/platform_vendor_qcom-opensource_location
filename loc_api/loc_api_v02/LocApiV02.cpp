@@ -2359,7 +2359,21 @@ void LocApiV02 :: reportPosition (
                locationExtended.flags |= GPS_LOCATION_EXTENDED_HAS_GPS_TIME;
                locationExtended.gpsTime.gpsWeek = location_report_ptr->gpsTime.gpsWeek;
                locationExtended.gpsTime.gpsTimeOfWeekMs = location_report_ptr->gpsTime.gpsTimeOfWeekMs;
+               LOC_LOGD("gpsWeek=%d, gpsTimeOfWeekMs=%u \n",
+                       location_report_ptr->gpsTime.gpsWeek,
+                       location_report_ptr->gpsTime.gpsTimeOfWeekMs);
             }
+
+            if (location_report_ptr->extDOP_valid )
+            {
+               LOC_LOGD("PDOP=%f, HDOP=%f, VDOP=%f, GDOP=%f, TDOP=%f \n",
+                  location_report_ptr->extDOP.PDOP,
+                  location_report_ptr->extDOP.HDOP,
+                  location_report_ptr->extDOP.VDOP,
+                  location_report_ptr->extDOP.GDOP,
+                  location_report_ptr->extDOP.TDOP);
+            }
+
             if((0 == location_report_ptr->latitude) &&
                (0 == location_report_ptr->longitude) &&
                (1 == location_report_ptr->horReliability_valid) &&
