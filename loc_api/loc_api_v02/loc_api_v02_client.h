@@ -1449,6 +1449,9 @@ typedef union
 
     const qmiLocInjectSrnApDataIndMsgT_v02 *pInjectSrnApDataInd;
     /*QMI_LOC_INJECT_SRN_AP_DATA_IND_V02*/
+
+    const qmiLocInjectXtraDataIndMsgT_v02 *pInjectXtraDataInd;
+    /*QMI_LOC_INJECT_XTRA_DATA_IND_V02*/
 }locClientRespIndUnionType;
 
 /** @} */ /* end_addtogroup data_types */
