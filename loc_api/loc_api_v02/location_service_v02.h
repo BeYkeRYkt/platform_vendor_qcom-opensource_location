@@ -63,8 +63,8 @@
  *THIS IS AN AUTO GENERATED FILE. DO NOT ALTER IN ANY WAY
  *====*====*====*====*====*====*====*====*====*====*====*====*====*====*====*/
 
-/* This file was generated with Tool version 6.14.7
-   It was generated on: Wed Jun  7 2017 (Spin 0)
+/* This file was generated with Tool version 6.14.7 
+   It was generated on: Wed Jun 21 2017 (Spin 0)
    From IDL File: location_service_v02.idl */
 
 /** @defgroup loc_qmi_consts Constant values defined in the IDL */
@@ -90,7 +90,7 @@ extern "C" {
 /** Major Version Number of the IDL used to generate this file */
 #define LOC_V02_IDL_MAJOR_VERS 0x02
 /** Revision Number of the IDL used to generate this file */
-#define LOC_V02_IDL_MINOR_VERS 0x45
+#define LOC_V02_IDL_MINOR_VERS 0x46
 /** Major Version Number of the qmi_idl_compiler used to generate this file */
 #define LOC_V02_IDL_TOOL_VERS 0x06
 /** Maximum Defined Message ID */
@@ -474,6 +474,8 @@ typedef uint64_t qmiLocEventRegMaskT_v02;
 #define QMI_LOC_EVENT_MASK_INTERNAL_STATUS_REPORT_V02 ((qmiLocEventRegMaskT_v02)0x100000000ull) /**<  The location service internal status report mask.  */
 #define QMI_LOC_EVENT_MASK_INJECT_SRN_AP_DATA_REQ_V02 ((qmiLocEventRegMaskT_v02)0x200000000ull) /**<  The control point must enable this mask to receive asynchronous event for 
        Short Range Node (SRN) Rssi scans. ex: BT,BTLE,NFC etc.  */
+#define QMI_LOC_EVENT_MASK_GNSS_ONLY_POSITION_REPORT_V02 ((qmiLocEventRegMaskT_v02)0x400000000ull) /**<  The control point must enable this mask to receive the position report
+       event indications which contain GNSS only position.  */
 /** @addtogroup loc_qmi_messages
     @{
   */
@@ -579,6 +581,8 @@ typedef struct {
       - QMI_LOC_EVENT_MASK_INTERNAL_STATUS_REPORT (0x100000000) --  The location service internal status report mask. 
       - QMI_LOC_EVENT_MASK_INJECT_SRN_AP_DATA_REQ (0x200000000) --  The control point must enable this mask to receive asynchronous event for 
        Short Range Node (SRN) Rssi scans. ex: BT,BTLE,NFC etc. 
+      - QMI_LOC_EVENT_MASK_GNSS_ONLY_POSITION_REPORT (0x400000000) --  The control point must enable this mask to receive the position report
+       event indications which contain GNSS only position. 
 
  Multiple events can be registered by ORing the individual masks and
  sending them in this TLV. All unused bits in this mask must be set to 0.
@@ -788,6 +792,17 @@ typedef struct {
        - 0x01 (TRUE) -- Share the position report \n
     If this optional TLV is not set, the GPS engine allows the position sharing.
   */
+
+  /* Optional */
+  /*  Report GNSS Only Position */
+  uint8_t reportGnssOnlyPosition_valid;  /**< Must be set to true if reportGnssOnlyPosition is being passed */
+  uint8_t reportGnssOnlyPosition;
+  /**<   Request the GPS engine to report positions that could be GNSS only or
+       combined with other technologies such as Sensors.
+       defaults to FALSE.
+       - 0x00 (FALSE) -- Report GNSS only positions is disabled.
+       - 0x01 (TRUE)  -- Report GNSS only positions is enabled.
+  */
 }qmiLocStartReqMsgT_v02;  /* Message */
 /**
     @}
@@ -942,21 +957,19 @@ typedef struct {
 
   qmiLocSensorUsageMaskT_v02 usageMask;
   /**<   Specifies which sensors were used in calculating the position in the
-       position report.
-
-       Valid bitmasks: \begin{itemize1}
-       \item    0x00000001 -- SENSOR_USED_ ACCEL
-       \item    0x00000002 -- SENSOR_USED_ GYRO
-       \vspace{-0.18in} \end{itemize1} */
+ position report.
+ Valid bitmasks: \n
+      - QMI_LOC_SENSOR_MASK_USED_ACCEL (0x00000001) --  Bitmask to specify whether an accelerometer was used. 
+      - QMI_LOC_SENSOR_MASK_USED_GYRO (0x00000002) --  Bitmask to specify whether a gyroscope was used.  */
 
   qmiLocSensorAidedMaskT_v02 aidingIndicatorMask;
   /**<   Specifies which results were aided by sensors.
 
-       Valid bitmasks: \n
-         - 0x00000001 -- AIDED_HEADING \n
-         - 0x00000002 -- AIDED_SPEED \n
-         - 0x00000004 -- AIDED_POSITION \n
-         - 0x00000008 -- AIDED_VELOCITY */
+ Valid bitmasks: \n
+      - QMI_LOC_SENSOR_AIDED_MASK_HEADING (0x00000001) --  Bitmask to specify whether a sensor was used to calculate heading. 
+      - QMI_LOC_SENSOR_AIDED_MASK_SPEED (0x00000002) --  Bitmask to specify whether a sensor was used to calculate speed. 
+      - QMI_LOC_SENSOR_AIDED_MASK_POSITION (0x00000004) --  Bitmask to specify whether a sensor was used to calculate position. 
+      - QMI_LOC_SENSOR_AIDED_MASK_VELOCITY (0x00000008) --  Bitmask to specify whether a sensor was used to calculate velocity.  */
 }qmiLocSensorUsageIndicatorStructT_v02;  /* Type */
 /**
     @}
@@ -1017,6 +1030,10 @@ typedef uint64_t qmiLocNavSolutionMaskT_v02;
 #define QMI_LOC_NAV_MASK_SBAS_CORRECTION_FAST_V02 ((qmiLocNavSolutionMaskT_v02)0x00000002ull) /**<  Bitmask to specify whether SBAS fast correction is used  */
 #define QMI_LOC_NAV_MASK_SBAS_CORRECTION_LONG_V02 ((qmiLocNavSolutionMaskT_v02)0x00000004ull) /**<  Bitmask to specify whether SBAS long-tem correction is used  */
 #define QMI_LOC_NAV_MASK_SBAS_INTEGRITY_V02 ((qmiLocNavSolutionMaskT_v02)0x00000008ull) /**<  Bitmask to specify whether SBAS integrity information is used  */
+typedef uint32_t qmiLocSensorSubTechnologyMaskT_v02;
+#define QMI_LOC_SENSOR_SUB_MASK_PDR_ENABLED_V02 ((qmiLocSensorSubTechnologyMaskT_v02)0x00000001) /**<  Bitmask to specify whether PDR is enable or disabled  */
+#define QMI_LOC_SENSOR_SUB_MASK_PEDOMETER_ENABLED_V02 ((qmiLocSensorSubTechnologyMaskT_v02)0x00000002) /**<  Bitmask to specify whether pedometer was used. */
+#define QMI_LOC_SENSOR_SUB_MASK_VEHICULAR_ENABLED_V02 ((qmiLocSensorSubTechnologyMaskT_v02)0x00000004) /**<  Bitmask to specify whether vehicular sensor assistance is enable or disabled  */
 /** @addtogroup loc_qmi_messages
     @{
   */
@@ -1355,7 +1372,7 @@ typedef struct {
   /*  Navigation solution */
   uint8_t navSolutionMask_valid;  /**< Must be set to true if navSolutionMask is being passed */
   qmiLocNavSolutionMaskT_v02 navSolutionMask;
-  /**<   Navigation solutions which are used to calculate
+  /**<   Navigation solutions that are used to calculate
  the GNSS position report.
  Valid bitmasks: \n
       - QMI_LOC_NAV_MASK_SBAS_CORRECTION_IONO (0x00000001) --  Bitmask to specify whether SBAS ionospheric correction is used 
@@ -1363,6 +1380,27 @@ typedef struct {
       - QMI_LOC_NAV_MASK_SBAS_CORRECTION_LONG (0x00000004) --  Bitmask to specify whether SBAS long-tem correction is used 
       - QMI_LOC_NAV_MASK_SBAS_INTEGRITY (0x00000008) --  Bitmask to specify whether SBAS integrity information is used 
  */
+
+  /* Optional */
+  /*  Sensor Sub-Technology Inforamtion */
+  uint8_t sensorSubTechnologyMask_valid;  /**< Must be set to true if sensorSubTechnologyMask is being passed */
+  qmiLocSensorSubTechnologyMaskT_v02 sensorSubTechnologyMask;
+  /**<   Sensor Sub-Technology Inforamtion.
+ Valid bitmasks:
+      - QMI_LOC_SENSOR_SUB_MASK_PDR_ENABLED (0x00000001) --  Bitmask to specify whether PDR is enable or disabled 
+      - QMI_LOC_SENSOR_SUB_MASK_PEDOMETER_ENABLED (0x00000002) --  Bitmask to specify whether pedometer was used.
+      - QMI_LOC_SENSOR_SUB_MASK_VEHICULAR_ENABLED (0x00000004) --  Bitmask to specify whether vehicular sensor assistance is enable or disabled 
+ */
+
+  /* Optional */
+  /*  GNSS only Position Report */
+  uint8_t gnssOnlyPosition_valid;  /**< Must be set to true if gnssOnlyPosition is being passed */
+  uint8_t gnssOnlyPosition;
+  /**<   Indicates if this position report is generated from GNSS only technology,
+       defaults to FALSE.
+       - 0x00 (FALSE) -- Position is generated with other technologies.
+       - 0x01 (TRUE)  -- Position is generated from GNSS technology only.
+  */
 
   /* Optional */
   /*  Extended Dilution of Precision */
@@ -6428,6 +6466,8 @@ typedef struct {
       - QMI_LOC_EVENT_MASK_INTERNAL_STATUS_REPORT (0x100000000) --  The location service internal status report mask. 
       - QMI_LOC_EVENT_MASK_INJECT_SRN_AP_DATA_REQ (0x200000000) --  The control point must enable this mask to receive asynchronous event for 
        Short Range Node (SRN) Rssi scans. ex: BT,BTLE,NFC etc. 
+      - QMI_LOC_EVENT_MASK_GNSS_ONLY_POSITION_REPORT (0x400000000) --  The control point must enable this mask to receive the position report
+       event indications which contain GNSS only position. 
  */
 }qmiLocGetRegisteredEventsIndMsgT_v02;  /* Message */
 /**
@@ -11339,9 +11379,10 @@ typedef struct {
   qmiLocBatchingTypeEnumT_v02 batchType;
   /**<   Identifies the batching type, defaults to the location batching.
 
-       Valid values: \n
-       @ENUM
-  */
+ Valid values: \n
+      - eQMI_LOC_LOCATION_BATCHING (1) --  Location batching 
+      - eQMI_LOC_OUTDOOR_TRIP_BATCHING (2) --  Outdoor trip batching 
+ */
 }qmiLocGetBatchSizeReqMsgT_v02;  /* Message */
 /**
     @}
@@ -11529,9 +11570,10 @@ typedef struct {
   qmiLocBatchingTypeEnumT_v02 batchType;
   /**<   Identifies the batching type, defaults to the location batching.
 
-       Valid values: \n
-       @ENUM
-  */
+ Valid values: \n
+      - eQMI_LOC_LOCATION_BATCHING (1) --  Location batching 
+      - eQMI_LOC_OUTDOOR_TRIP_BATCHING (2) --  Outdoor trip batching 
+ */
 
   /* Optional */
   /*  The Accumulated OTB Distance */
@@ -11736,9 +11778,10 @@ typedef struct {
   qmiLocBatchingTypeEnumT_v02 batchType;
   /**<   Identifies the batching type, defaults to the location batching.
 
-       Valid values: \n
-       @ENUM
-  */
+ Valid values: \n
+      - eQMI_LOC_LOCATION_BATCHING (1) --  Location batching 
+      - eQMI_LOC_OUTDOOR_TRIP_BATCHING (2) --  Outdoor trip batching 
+ */
 }qmiLocReadFromBatchReqMsgT_v02;  /* Message */
 /**
     @}
@@ -11820,9 +11863,10 @@ typedef struct {
   qmiLocBatchingTypeEnumT_v02 batchType;
   /**<   Identifies the batching type, defaults to the location batching.
 
-       Valid values: \n
-       @ENUM
-  */
+ Valid values: \n
+      - eQMI_LOC_LOCATION_BATCHING (1) --  Location batching 
+      - eQMI_LOC_OUTDOOR_TRIP_BATCHING (2) --  Outdoor trip batching 
+ */
 }qmiLocStopBatchingReqMsgT_v02;  /* Message */
 /**
     @}
@@ -11890,9 +11934,10 @@ typedef struct {
   qmiLocBatchingTypeEnumT_v02 batchType;
   /**<   Identifies the batching type, defaults to the location batching.
 
-       Valid values: \n
-       @ENUM
-  */
+ Valid values: \n
+      - eQMI_LOC_LOCATION_BATCHING (1) --  Location batching 
+      - eQMI_LOC_OUTDOOR_TRIP_BATCHING (2) --  Outdoor trip batching 
+ */
 }qmiLocReleaseBatchReqMsgT_v02;  /* Message */
 /**
     @}
@@ -13368,7 +13413,7 @@ typedef uint64_t qmiLocSvMeasStatusValidMaskT_v02;
 #define QMI_LOC_MASK_MEAS_STATUS_LP_POS_STAT_BIT_VALID_V02 ((qmiLocSvMeasStatusValidMaskT_v02)0x00000080ull) /**<  TRUE/FALSE : Lock Point is positive/negative   */
 #define QMI_LOC_MASK_MEAS_STATUS_FROM_RNG_DIFF_STAT_BIT_VALID_V02 ((qmiLocSvMeasStatusValidMaskT_v02)0x00000200ull) /**<  Range update from satellite differences  */
 #define QMI_LOC_MASK_MEAS_STATUS_FROM_VE_DIFF_STAT_BIT_VALID_V02 ((qmiLocSvMeasStatusValidMaskT_v02)0x00000400ull) /**<  Doppler update from satellite differences  */
-#define QMI_LOC_MASK_MEAS_STATUS_GNSS_FRESH_MEAS_STAT_BIT_VALID_V02 ((qmiLocSvMeasStatusValidMaskT_v02)0x08000000ull) /**< TRUE - Fresh GNSS measurement observed in last second  >  */
+#define QMI_LOC_MASK_MEAS_STATUS_GNSS_FRESH_MEAS_STAT_BIT_VALID_V02 ((qmiLocSvMeasStatusValidMaskT_v02)0x08000000ull) /**< TRUE -- Fresh GNSS measurement observed in the last second  >  */
 typedef uint64_t qmiLocSvMeasStatusMaskT_v02;
 #define QMI_LOC_MASK_MEAS_STATUS_SM_VALID_V02 ((qmiLocSvMeasStatusMaskT_v02)0x00000001ull) /**<  Satellite time in submilliseconds (code phase) is known  */
 #define QMI_LOC_MASK_MEAS_STATUS_SB_VALID_V02 ((qmiLocSvMeasStatusMaskT_v02)0x00000002ull) /**<  Satellite sub-bit time is known  */
@@ -13388,14 +13433,14 @@ typedef struct {
 
   uint32_t svTimeMs;
   /**<       Satellite time in milliseconds. \n
-            - For GPS, BDS, GAL, and QZSS -- Range is 0 thru (604800000-1) \n
-            - For GLONASS -- Range is 0 thru (86400000-1) \n
+            - For GPS, BDS, GAL, and QZSS -- Range is 0 through (604800000-1) \n
+            - For GLONASS -- Range is 0 through (86400000-1) \n
             - Units: Milliseconds \vspace{4pt}
 
-            This is valid when the QMI_LOC_MEAS_ STATUS_MS_VALID bit is set
+            This is valid when the QMI_LOC_MEAS_STATUS_MS_ VALID bit is set
             in the measurement status. \vspace{4pt}
 
-            @note1hang All SV times in the current measurement block are
+            @note All SV times in the current measurement block are
             already propagated to a common reference time epoch.
     */
 
@@ -13515,7 +13560,7 @@ typedef struct {
       - QMI_LOC_MASK_MEAS_STATUS_LP_POS_STAT_BIT_VALID (0x00000080) --  TRUE/FALSE : Lock Point is positive/negative  
       - QMI_LOC_MASK_MEAS_STATUS_FROM_RNG_DIFF_STAT_BIT_VALID (0x00000200) --  Range update from satellite differences 
       - QMI_LOC_MASK_MEAS_STATUS_FROM_VE_DIFF_STAT_BIT_VALID (0x00000400) --  Doppler update from satellite differences 
-      - QMI_LOC_MASK_MEAS_STATUS_GNSS_FRESH_MEAS_STAT_BIT_VALID (0x08000000) -- TRUE - Fresh GNSS measurement observed in last second  > 
+      - QMI_LOC_MASK_MEAS_STATUS_GNSS_FRESH_MEAS_STAT_BIT_VALID (0x08000000) -- TRUE -- Fresh GNSS measurement observed in the last second  > 
 \vspace{4pt}
  Additionally, MSB 0xFFC0000000000000 bits indicate the validity of DONT_USE bits. \n
 
@@ -16168,11 +16213,11 @@ typedef uint32_t qmiLocDeleteSatelliteDataMaskT_v02;
 #define QMI_LOC_DELETE_DATA_MASK_IONO_V02 ((qmiLocDeleteSatelliteDataMaskT_v02)0x00000200) /**<  Ionosphere correction  */
 #define QMI_LOC_DELETE_DATA_MASK_TIME_V02 ((qmiLocDeleteSatelliteDataMaskT_v02)0x00000400) /**<  Reset satellite time  */
 typedef uint32_t qmiLocGNSSConstellMaskT_v02;
-#define QMI_LOC_SYSTEM_GPS_V02 ((qmiLocGNSSConstellMaskT_v02)0x00000001) 
-#define QMI_LOC_SYSTEM_GLO_V02 ((qmiLocGNSSConstellMaskT_v02)0x00000002) 
-#define QMI_LOC_SYSTEM_BDS_V02 ((qmiLocGNSSConstellMaskT_v02)0x00000004) 
-#define QMI_LOC_SYSTEM_GAL_V02 ((qmiLocGNSSConstellMaskT_v02)0x00000008) 
-#define QMI_LOC_SYSTEM_QZSS_V02 ((qmiLocGNSSConstellMaskT_v02)0x00000010) 
+#define QMI_LOC_SYSTEM_GPS_V02 ((qmiLocGNSSConstellMaskT_v02)0x00000001) /**<  System GPS data  */
+#define QMI_LOC_SYSTEM_GLO_V02 ((qmiLocGNSSConstellMaskT_v02)0x00000002) /**<  System GLONASS data  */
+#define QMI_LOC_SYSTEM_BDS_V02 ((qmiLocGNSSConstellMaskT_v02)0x00000004) /**<  System BDS data  */
+#define QMI_LOC_SYSTEM_GAL_V02 ((qmiLocGNSSConstellMaskT_v02)0x00000008) /**<  System GALILEO data  */
+#define QMI_LOC_SYSTEM_QZSS_V02 ((qmiLocGNSSConstellMaskT_v02)0x00000010) /**<  System QZSS data  */
 /** @addtogroup loc_qmi_aggregates
     @{
   */
@@ -16182,11 +16227,11 @@ typedef struct {
   /**<   Indicates which satellite system's data is to be deleted.
  The control point can delete multiple systems at a time.
  Valid values: \n
-      - QMI_LOC_SYSTEM_GPS (0x00000001) -- 
-      - QMI_LOC_SYSTEM_GLO (0x00000002) -- 
-      - QMI_LOC_SYSTEM_BDS (0x00000004) -- 
-      - QMI_LOC_SYSTEM_GAL (0x00000008) -- 
-      - QMI_LOC_SYSTEM_QZSS (0x00000010) -- 
+      - QMI_LOC_SYSTEM_GPS (0x00000001) --  System GPS data 
+      - QMI_LOC_SYSTEM_GLO (0x00000002) --  System GLONASS data 
+      - QMI_LOC_SYSTEM_BDS (0x00000004) --  System BDS data 
+      - QMI_LOC_SYSTEM_GAL (0x00000008) --  System GALILEO data 
+      - QMI_LOC_SYSTEM_QZSS (0x00000010) --  System QZSS data 
  */
 
   qmiLocDeleteSatelliteDataMaskT_v02 deleteSatelliteDataMask;
@@ -17874,4 +17919,5 @@ qmi_idl_service_object_type loc_get_service_object_internal_v02
 }
 #endif
 #endif
+
 
