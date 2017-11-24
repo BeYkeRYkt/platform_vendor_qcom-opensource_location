@@ -11,6 +11,7 @@ LOCAL_SHARED_LIBRARIES := \
     libutils \
     libcutils \
     libgps.utils \
+    libloc_pla \
     liblog
 
 LOCAL_SRC_FILES += \
