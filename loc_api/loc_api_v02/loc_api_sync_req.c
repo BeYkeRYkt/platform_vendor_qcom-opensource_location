@@ -416,6 +416,7 @@ static int loc_sync_wait_for_ind(
    int ret_val = 0;  /* the return value of this function: 0 = no error */
    int rc;          /* return code from pthread calls */
 
+   struct timeval present_time;
    struct timespec expire_time;
 
    pthread_mutex_lock(&slot->sync_req_lock);
@@ -437,7 +438,9 @@ static int loc_sync_wait_for_ind(
       }
 
       /* Calculate absolute expire time */
-      clock_gettime(CLOCK_MONOTONIC, &expire_time);
+      gettimeofday(&present_time, NULL);
+      expire_time.tv_sec  = present_time.tv_sec;
+      expire_time.tv_nsec = present_time.tv_usec * 1000;
       expire_time.tv_sec += timeout_seconds;
 
       /* Take new wait request */
