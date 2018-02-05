@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2011-2018, The Linux Foundation. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -108,8 +108,13 @@ private:
   static bool convertNiNotifyVerifyType (GnssNiNotification *notif,
       qmiLocNiNotifyVerifyEnumT_v02 notif_priv);
 
+  /*convert signal type to carrier frequency*/
+  static float convertSignalTypeToCarrierFrequency(
+      qmiLocGnssSignalTypeMaskT_v02 signalType,
+      uint8_t gloFrequency);
+
   /*convert GnssMeasurement type from QMI LOC to loc eng format*/
-  static void convertGnssMeasurements (GnssMeasurementsData& measurementData,
+  static bool convertGnssMeasurements (GnssMeasurementsData& measurementData,
       const qmiLocEventGnssSvMeasInfoIndMsgT_v02& gnss_measurement_report_ptr,
       int index);
 
