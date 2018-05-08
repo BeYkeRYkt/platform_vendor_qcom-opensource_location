@@ -78,6 +78,20 @@ if (test "x${with_glib}" = "xyes"); then
         AC_SUBST(GLIB_LIBS)
 fi
 
+AC_ARG_ENABLE(target,
+    [AS_HELP_STRING([--enable-target=TARGET], [Specify the target product to build])],
+    [TARGET=$enableval],
+    [TARGET=none]
+)
+if (test "x$TARGET" = "xapq8053"); then
+    AC_MSG_NOTICE([Target is 8053.])
+    CPPFLAGS="${CPPFLAGS} -DQCMAP_DISABLE"
+    CFLAGS="${CFLAGS} -DQCMAP_DISABLE"
+fi
+
+AC_SUBST([CFLAGS])
+AC_SUBST([CPPFLAGS])
+
 AM_CONDITIONAL(USE_GLIB, test "x${with_glib}" = "xyes")
 
 AC_CONFIG_FILES([ \

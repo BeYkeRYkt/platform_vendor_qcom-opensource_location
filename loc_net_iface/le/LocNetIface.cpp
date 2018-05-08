@@ -134,8 +134,12 @@ void LocNetIface::subscribeWithQcmap () {
         return;
     }
 
+#ifndef QCMAP_DISABLE
+    /* If QCMAP is disabled for this target, do not try to create an
+       instance of QCMAP_Client */
     /* Create a QCMAP Client instance */
     mQcmapClientPtr = new QCMAP_Client(qcmapClientCallback);
+#endif
     if (mQcmapClientPtr == NULL) {
         LOC_LOGE("Failed to allocate QCMAP instance !");
         return;
