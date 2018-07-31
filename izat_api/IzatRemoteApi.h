@@ -57,6 +57,7 @@ public:
 class LocationUpdaterBase : public IzatNotifier {
     const remoteClientInfo *mClientInfo;
     const void* mClientData;
+    const OutCard* mSubscriptionCard;
 protected:
     static OutCard* getLocSubscriptionCard(const char* name, uint32_t streamType);
 public:
@@ -113,7 +114,7 @@ public:
 class SvInfoUpdaterBase : public IzatNotifier {
     const remoteClientInfo *mClientInfo;
     const void* mClientData;
-
+    const OutCard* mSubscriptionCard;
 protected:
     static OutCard* getSvInfoSubscriptionCard(const char* name,
                                               uint32_t streamType);
