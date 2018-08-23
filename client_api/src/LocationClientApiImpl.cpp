@@ -80,6 +80,9 @@ static Location parseLocation(const ::Location &halLocation) {
     location.speedAccuracy = halLocation.speedAccuracy;
     location.bearingAccuracy = halLocation.bearingAccuracy;
 
+    if (0 != halLocation.timestamp) {
+        flags |= LOCATION_HAS_TIMESTAMP_BIT;
+    }
     if (LOCATION_HAS_LAT_LONG_BIT & halLocation.flags) {
         flags |= LOCATION_HAS_LAT_LONG_BIT;
     }
@@ -363,6 +366,9 @@ static GnssLocation parseLocationInfo(const ::GnssLocationInfoNotification &halL
     locationInfo.speedAccuracy = halLocation.speedAccuracy;
     locationInfo.bearingAccuracy = halLocation.bearingAccuracy;
 
+    if (0 != halLocation.timestamp) {
+        flags |= LOCATION_HAS_TIMESTAMP_BIT;
+    }
     if (LOCATION_HAS_LAT_LONG_BIT & halLocation.flags) {
         flags |= LOCATION_HAS_LAT_LONG_BIT;
     }
