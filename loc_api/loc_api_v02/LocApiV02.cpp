@@ -2246,7 +2246,7 @@ void LocApiV02 :: reportPosition (
     memset(&location, 0, sizeof (UlpLocation));
     location.size = sizeof(location);
     location.unpropagatedPosition = unpropagatedPosition;
-    GnssDataNotification dataNotify = { 0 };
+    GnssDataNotification dataNotify = {};
     int msInWeek = -1;
 
     GpsLocationExtended locationExtended;
@@ -2273,7 +2273,7 @@ void LocApiV02 :: reportPosition (
         LOC_LOGV("%s:%d jammerIndicator is present len=%d",
                  __func__, __LINE__,
                  location_report_ptr->jammerIndicatorList_len);
-        for (int i = 1; i < location_report_ptr->jammerIndicatorList_len; i++) {
+        for (uint32_t i = 1; i < location_report_ptr->jammerIndicatorList_len; i++) {
             dataNotify.gnssDataMask[i-1] = 0;
             dataNotify.agc[i-1] = 0.0;
             dataNotify.jammerInd[i-1] = 0.0;
