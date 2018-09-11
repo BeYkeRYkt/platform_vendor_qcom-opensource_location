@@ -99,6 +99,9 @@ public:
     // other interface
     void updateNetworkAvailability(bool available);
     void updateCallbackFunctions(const ClientCallbacks&);
+    void getGnssEnergyConsumed(GnssEnergyConsumedCb gnssEnergyConsumedCallback,
+                               ResponseCb responseCallback);
+
 
 private:
     void capabilitesCallback(ELocMsgID  msgId, const void* msgData);
@@ -119,6 +122,9 @@ private:
 
     LocationCallbacksMask   mCallbacksMask;
     LocationOptions         mLocationOptions;
+
+    GnssEnergyConsumedCb    mGnssEnergyConsumedInfoCb;
+    ResponseCb              mGnssEnergyConsumedResponseCb;
 
     MsgTask*                mMsgTask;
     LocIpcSender*           mIpcSender;

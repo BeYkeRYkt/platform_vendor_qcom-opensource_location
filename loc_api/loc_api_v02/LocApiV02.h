@@ -207,6 +207,9 @@ public:
     injectPosition(double latitude, double longitude, float accuracy);
 
   virtual void
+    injectPosition(const GnssLocationInfoNotification &locationInfo, bool onDemandCpi);
+
+  virtual void
     deleteAidingData(const GnssAidingData& data, LocApiResponse *adapterResponse);
 
   virtual void
@@ -262,6 +265,9 @@ public:
   virtual void closeDataCall();
   virtual void releaseDataServiceClient();
   virtual LocationError setGpsLockSync(GnssConfigGpsLock lock);
+  virtual LocationError setConstrainedTuncMode(bool enabled, float tuncConstraint, uint32_t powerBudget);
+  virtual LocationError setPositionAssistedClockEstimatorMode(bool enabled);
+  virtual LocationError getGnssEnergyConsumed();
 
   /*
     Returns

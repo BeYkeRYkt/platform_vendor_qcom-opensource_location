@@ -747,6 +747,19 @@ typedef union
 
     const qmiLocInjectFdclDataReqMsgT_v02 *pInjectFdclDataReq;
     /*QMI_LOC_INJECT_FDCL_DATA_REQ_V02*/
+
+    const qmiLocSetConstrainedTuncModeReqMsgT_v02
+            *pSetConstrainedTuncModeReq;
+    /*QMI_LOC_SET_CONSTRAINED_TUNC_MODE_REQ_V02*/
+
+    const qmiLocEnablePositionAssistedClockEstReqMsgT_v02
+            *pSetEnablePositionAssistedClockEstReq;
+    /*QMI_LOC_ENABLE_POSITION_ASSISTED_CLOCK_EST_REQ_V02*/
+
+    const qmiLocQueryGNSSEnergyConsumedReqMsgT_v02
+            *pQueryGNSSEnergyConsumedReq;
+    /*QMI_LOC_QUERY_GNSS_ENERGY_CONSUMED_REQ_V02*/
+
 }locClientReqUnionType;
 
 
@@ -1493,6 +1506,9 @@ typedef union
 
     const qmiLocInjectFdclDataIndMsgT_v02 *pInjectFdclDataInd;
     /* QMI_LOC_INJECT_FDCL_DATA_IND_V02 */
+
+    const qmiLocQueryGNSSEnergyConsumedIndMsgT_v02 *pQueryGNSSEnergyConsumedInd;
+    /* QMI_LOC_QUERY_GNSS_ENERGY_CONSUMED_IND_V02*/
 
 }locClientRespIndUnionType;
 

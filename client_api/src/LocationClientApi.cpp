@@ -158,5 +158,15 @@ void LocationClientApi::updateNetworkAvailability(bool available) {
     }
 }
 
+void LocationClientApi::getGnssEnergyConsumed(
+        GnssEnergyConsumedCb gnssEnergyConsumedCallback,
+        ResponseCb responseCallback) {
+
+    if (mApiImpl) {
+        mApiImpl->getGnssEnergyConsumed(gnssEnergyConsumedCallback,
+                                        responseCallback);
+    }
+}
+
 } // namespace location_client
 

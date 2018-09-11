@@ -669,9 +669,16 @@ static const locClientRespIndTableStructT locClientRespIndTable[]= {
      sizeof(qmiLocGetFdclBsListIndMsgT_v02) },
 
    { QMI_LOC_INJECT_FDCL_DATA_IND_V02,
-     sizeof(qmiLocInjectFdclDataIndMsgT_v02) }
+     sizeof(qmiLocInjectFdclDataIndMsgT_v02) },
 
+   { QMI_LOC_SET_CONSTRAINED_TUNC_MODE_IND_V02,
+     sizeof(qmiLocSetConstrainedTuncModeIndMsgT_v02) },
 
+   { QMI_LOC_ENABLE_POSITION_ASSISTED_CLOCK_EST_IND_V02,
+     sizeof(qmiLocEnablePositionAssistedClockEstIndMsgT_v02) },
+
+   { QMI_LOC_QUERY_GNSS_ENERGY_CONSUMED_IND_V02,
+     sizeof(qmiLocQueryGNSSEnergyConsumedIndMsgT_v02) }
 };
 
 
@@ -1637,6 +1644,24 @@ static bool validateRequest(
     case QMI_LOC_INJECT_FDCL_DATA_REQ_V02:
     {
         *pOutLen = sizeof(qmiLocInjectFdclDataReqMsgT_v02);
+        break;
+    }
+
+    case QMI_LOC_SET_CONSTRAINED_TUNC_MODE_REQ_V02:
+    {
+        *pOutLen = sizeof(qmiLocSetConstrainedTuncModeReqMsgT_v02);
+        break;
+    }
+
+    case QMI_LOC_ENABLE_POSITION_ASSISTED_CLOCK_EST_REQ_V02:
+    {
+        *pOutLen = sizeof(qmiLocEnablePositionAssistedClockEstReqMsgT_v02);
+        break;
+    }
+
+    case QMI_LOC_QUERY_GNSS_ENERGY_CONSUMED_REQ_V02:
+    {
+        *pOutLen = sizeof(qmiLocQueryGNSSEnergyConsumedReqMsgT_v02);
         break;
     }
 
